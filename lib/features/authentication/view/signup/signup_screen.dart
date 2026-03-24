@@ -48,7 +48,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       ref.read(signupViewModelProvider.notifier).submit(
         onSuccess: () {
-          if (mounted) context.go(AppRoutes.goalFormStep1);
+          if (mounted) context.go(AppRoutes.goalStep1);
         },
       );
     }

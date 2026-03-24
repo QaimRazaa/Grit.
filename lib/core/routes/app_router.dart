@@ -5,11 +5,14 @@ import 'package:grit/features/authentication/view/onboarding/onboarding_screen.d
 import 'package:grit/features/authentication/view/splash/splash_screen.dart';
 import 'package:grit/features/authentication/view/signup/signup_screen.dart';
 import 'package:grit/features/authentication/view/signin/signin_screen.dart';
-import 'package:grit/features/dashboard/view/client_home/client_home_screen.dart';
-import 'package:grit/features/dashboard/view/trainer_dashboard/trainer_dashboard_screen.dart';
+import 'package:grit/features/client/view/goal/goal_step1_screen.dart';
+import 'package:grit/features/client/view/goal/goal_step2_screen.dart';
+import 'package:grit/features/client/view/goal/goal_step3_screen.dart';
+import 'package:grit/features/client/view/goal/goal_step4_screen.dart';
+import 'package:grit/features/client/view/goal/waiting_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.splash,
+  initialLocation: AppRoutes.goalStep1,
   routes: [
     GoRoute(
       path: AppRoutes.splash,
@@ -28,12 +31,24 @@ final appRouter = GoRouter(
       builder: (context, state) => const SigninScreen(),
     ),
     GoRoute(
-      path: AppRoutes.clientHome,
-      builder: (context, state) => const ClientHomeScreen(),
+      path: AppRoutes.goalStep1,
+      builder: (context, state) => const GoalStep1Screen(),
     ),
     GoRoute(
-      path: AppRoutes.trainerDashboard,
-      builder: (context, state) => const TrainerDashboardScreen(),
+      path: AppRoutes.goalStep2,
+      builder: (context, state) => const GoalStep2Screen(),
+    ),
+    GoRoute(
+      path: AppRoutes.goalStep3,
+      builder: (context, state) => const GoalStep3Screen(),
+    ),
+    GoRoute(
+      path: AppRoutes.goalStep4,
+      builder: (context, state) => const GoalStep4Screen(),
+    ),
+    GoRoute(
+      path: AppRoutes.waiting,
+      builder: (context, state) => const WaitingScreen(),
     ),
   ],
 );

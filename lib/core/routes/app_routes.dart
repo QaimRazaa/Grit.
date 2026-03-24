@@ -7,7 +7,10 @@ class AppRoutes {
   static const String clientHome = '/client-home';
   static const String trainerDashboard = '/trainer-dashboard';
   static const String waiting = '/waiting';
-  static const String goalFormStep1 = '/goal-form-step-1';
+  static const String goalStep1 = '/goal-step-1';
+  static const String goalStep2 = '/goal-step-2';
+  static const String goalStep3 = '/goal-step-3';
+  static const String goalStep4 = '/goal-step-4';
 
   AppRoutes._();
 }

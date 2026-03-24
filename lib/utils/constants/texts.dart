@@ -51,6 +51,58 @@ class AppTexts {
   static const String errorWrongPassword = 'Incorrect password. Try again.';
   static const String errorEmailNotFound = 'No account found with this email.';
 
+  // Goal Form - Shared
+  static const String buttonContinue = 'Continue';
+
+  // Goal Form - Step 1
+  static const String goalStep1Label = 'STEP 1 OF 4';
+  static const String goalStep1Question = 'What is your primary goal?';
+  
+  static const String goalLoseWeight = 'Lose Weight';
+  static const String goalLoseWeightDesc = 'Burn fat and reduce body weight';
+  
+  static const String goalBuildMuscle = 'Build Muscle';
+  static const String goalBuildMuscleDesc = 'Increase strength and muscle size';
+  
+  static const String goalGetFit = 'Get Fit';
+  static const String goalGetFitDesc = 'Improve overall fitness and endurance';
+  
+  static const String goalImproveStamina = 'Improve Stamina';
+  static const String goalImproveStaminaDesc = 'Build cardio and stay active longer';
+  
+  static const String goalBodyRecomp = 'Body Recomposition';
+  static const String goalBodyRecompDesc = 'Lose fat and build muscle at the same time';
+
+  // Goal Form - Step 2
+  static const String goalStep2Label = 'STEP 2 OF 4';
+  static const String goalStep2Question = 'Tell us about yourself.';
+  static const String goalStep2WeightLabel = 'Current weight';
+  static const String goalStep2WeightHint = '70';
+  static const String goalStep2WeightSuffix = 'kg';
+  static const String goalStep2HeightLabel = 'Height';
+  static const String goalStep2HeightHint = '170';
+  static const String goalStep2HeightSuffix = 'cm';
+  static const String goalStep2AgeLabel = 'Age';
+  static const String goalStep2AgeHint = '24';
+  static const String goalStep2GenderLabel = 'GENDER';
+
+  // Goal Form - Step 3
+  static const String goalStep3Label = 'STEP 3 OF 4';
+  static const String goalStep3Question = 'Let us set your schedule.';
+  static const String goalStep3ExpLabel = 'EXPERIENCE LEVEL';
+  static const String goalStep3DaysLabel = 'DAYS PER WEEK';
+  static const String goalStep3AccessLabel = 'GYM ACCESS';
+  static const String goalStep3TimeLabel = 'PREFERRED TRAINING TIME';
+
+  // Goal Form - Step 4
+  static const String goalStep4Label = 'STEP 4 OF 4';
+  static const String goalStep4Question = 'Almost done.';
+  static const String goalStep4InjuriesLabel = 'ANY INJURIES OR LIMITATIONS?';
+  static const String goalStep4InjuriesHint = 'e.g. bad left knee, no running — or leave blank if none';
+  static const String goalStep4SourceLabel = 'HOW DID YOU HEAR ABOUT GRIT.?';
+  static const String buttonSubmitProfile = 'Submit my profile';
+  static const String errorGoalFormSubmit = 'Something went wrong. Try again.';
+
   // Private constructor to prevent instantiation
   AppTexts._();
 }
