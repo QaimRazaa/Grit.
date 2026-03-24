@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class AppSizes {
-  static late MediaQueryData _mediaQuery;
   static late double screenWidth;
   static late double screenHeight;
   static late double blockWidth;
@@ -20,12 +19,6 @@ class AppSizes {
 
     try {
       // Validate MediaQuery data before using it
-      if (mediaQuery.size.width <= 0 || mediaQuery.size.height <= 0) {
-        _isInitializing = false;
-        return;
-      }
-
-      _mediaQuery = mediaQuery;
       screenWidth = mediaQuery.size.width;
       screenHeight = mediaQuery.size.height;
       safeArea = mediaQuery.padding;
@@ -65,6 +58,9 @@ class AppSizes {
   }
 
   // Enhanced validation
+  static const double _designWidth = 390.0;
+  static const double _designHeight = 844.0;
+
   static bool get _isValid =>
       initialized &&
       !_isInitializing &&
@@ -77,28 +73,28 @@ class AppSizes {
       blockWidth > 0 &&
       blockHeight > 0;
 
-  static double width(double percent) {
+  static double width(double pixels) {
     if (!_isValid) {
       return 0;
     }
-    return blockWidth * percent;
+    return (pixels / _designWidth) * screenWidth;
   }
 
-  static double height(double percent) {
+  static double height(double pixels) {
     if (!_isValid) {
       return 0;
     }
-    return blockHeight * percent;
+    return (pixels / _designHeight) * screenHeight;
   }
 
-  static double radius(double percent) {
+  static double radius(double pixels) {
     if (!_isValid) return 0;
-    return blockWidth * percent;
+    return (pixels / _designWidth) * screenWidth;
   }
 
-  static double icon(double percent) {
+  static double icon(double pixels) {
     if (!_isValid) return 0;
-    return blockHeight * percent;
+    return (pixels / _designWidth) * screenWidth;
   }
 
   static double font(double size) {
@@ -110,16 +106,16 @@ class AppSizes {
     return calculated.isNaN ? size : calculated;
   }
 
-  static EdgeInsets paddingAll(double percent) {
+  static EdgeInsets paddingAll(double pixels) {
     if (!_isValid) return EdgeInsets.zero;
-    return EdgeInsets.all(blockWidth * percent);
+    return EdgeInsets.all(width(pixels));
   }
 
   static EdgeInsets paddingSymmetric({double h = 0, double v = 0}) {
     if (!_isValid) return EdgeInsets.zero;
     return EdgeInsets.symmetric(
-      horizontal: blockWidth * h,
-      vertical: blockHeight * v,
+      horizontal: width(h),
+      vertical: height(v),
     );
   }
 
@@ -131,10 +127,10 @@ class AppSizes {
   }) {
     if (!_isValid) return EdgeInsets.zero;
     return EdgeInsets.only(
-      left: blockWidth * left,
-      top: blockHeight * top,
-      right: blockWidth * right,
-      bottom: blockHeight * bottom,
+      left: width(left),
+      top: height(top),
+      right: width(right),
+      bottom: height(bottom),
     );
   }
 
