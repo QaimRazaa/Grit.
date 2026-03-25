@@ -12,7 +12,7 @@ import 'package:grit/features/client/view/goal/goal_step4_screen.dart';
 import 'package:grit/features/client/view/goal/waiting_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.goalStep1,
+  initialLocation: AppRoutes.splash,
   routes: [
     GoRoute(
       path: AppRoutes.splash,

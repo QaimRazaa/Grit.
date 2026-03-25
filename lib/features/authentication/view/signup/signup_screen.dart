@@ -46,11 +46,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   void _handleSubmit() {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(signupViewModelProvider.notifier).submit(
-        onSuccess: () {
-          if (mounted) context.go(AppRoutes.goalStep1);
-        },
-      );
+      ref
+          .read(signupViewModelProvider.notifier)
+          .submit(
+            onSuccess: () {
+              if (mounted) context.go(AppRoutes.goalStep1);
+            },
+          );
     }
   }
 
@@ -97,8 +99,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     focusNode: _nameFocus,
                     textInputAction: TextInputAction.next,
                     height: AppSizes.height(GritSizes.size52),
-                    onChanged: (v) => ref.read(signupViewModelProvider.notifier).setName(v),
-                    onSubmitted: (_) => FocusScope.of(context).requestFocus(_emailFocus),
+                    onChanged: (v) =>
+                        ref.read(signupViewModelProvider.notifier).setName(v),
+                    onSubmitted: (_) =>
+                        FocusScope.of(context).requestFocus(_emailFocus),
                     validator: AppValidators.validateName,
                   ),
                   SizedBox(height: AppSizes.height(GritSizes.gap16)),
@@ -110,8 +114,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     height: AppSizes.height(GritSizes.size52),
-                    onChanged: (v) => ref.read(signupViewModelProvider.notifier).setEmail(v),
-                    onSubmitted: (_) => FocusScope.of(context).requestFocus(_passwordFocus),
+                    onChanged: (v) =>
+                        ref.read(signupViewModelProvider.notifier).setEmail(v),
+                    onSubmitted: (_) =>
+                        FocusScope.of(context).requestFocus(_passwordFocus),
                     validator: AppValidators.validateEmail,
                   ),
                   SizedBox(height: AppSizes.height(GritSizes.gap16)),
@@ -123,7 +129,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     obscureText: obscurePassword,
                     textInputAction: TextInputAction.done,
                     height: AppSizes.height(GritSizes.size52),
-                    onChanged: (v) => ref.read(signupViewModelProvider.notifier).setPassword(v),
+                    onChanged: (v) => ref
+                        .read(signupViewModelProvider.notifier)
+                        .setPassword(v),
                     onSubmitted: (_) {
                       if (state.isButtonActive) {
                         _handleSubmit();
@@ -134,19 +142,27 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       obscurePassword
                           ? CupertinoIcons.eye
                           : CupertinoIcons.eye_slash,
-                      color: obscurePassword ? AppColors.muted : AppColors.amber,
+                      color: obscurePassword
+                          ? AppColors.muted
+                          : AppColors.amber,
                       size: AppSizes.icon(GritSizes.size20),
                     ),
                     onSuffixTap: () {
-                      ref.read(obscurePasswordProvider('signup').notifier).state =
+                      ref
+                              .read(obscurePasswordProvider('signup').notifier)
+                              .state =
                           !obscurePassword;
                     },
                   ),
                   SizedBox(height: AppSizes.height(GritSizes.gap24)),
                   CustomElevatedButton(
                     text: AppTexts.buttonCreateAccount,
-                    textColor: state.isButtonActive ? AppColors.background : AppColors.dim,
-                    backgroundColor: state.isButtonActive ? AppColors.amber : AppColors.surface2,
+                    textColor: state.isButtonActive
+                        ? AppColors.background
+                        : AppColors.dim,
+                    backgroundColor: state.isButtonActive
+                        ? AppColors.amber
+                        : AppColors.surface2,
                     onPressed: (state.isButtonActive && !state.isLoading)
                         ? _handleSubmit
                         : null,
@@ -181,7 +197,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   SizedBox(height: AppSizes.height(16.0)),
                   Center(
                     child: GestureDetector(
-                      onTap: () => context.go(AppRoutes.signin),
+                      onTap: () => context.go(AppRoutes.goalStep1),
                       child: RichText(
                         text: TextSpan(
                           text: '${AppTexts.loginPromptText} ',
