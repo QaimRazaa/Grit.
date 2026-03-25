@@ -11,13 +11,16 @@ import 'package:grit/features/client/view/home/widgets/coach_insight.dart';
 import 'package:grit/features/client/view/home/widgets/next_up.dart';
 import 'package:grit/features/client/viewmodel/home/home_viewmodel.dart';
 import 'package:grit/shared/widgets/navbar/bottom_navigation_bar.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grit/core/routes/app_routes.dart';
+import 'package:grit/shared/widgets/dialogs/confirm_dialog.dart';
 
 import 'package:grit/shared/widgets/appbar/shared_top_bar.dart';
 import 'package:grit/utils/constants/colors.dart';
 import 'package:grit/utils/constants/text_styles.dart';
 import 'package:grit/utils/device/responsive_size.dart';
 
-enum HomeWorkoutState { notStarted, partiallyLogged, allDone, programComplete }
+enum HomeWorkoutState { notStarted, partiallyLogged, allDone, programComplete, restDay }
 
 class ClientHomeScreen extends ConsumerWidget {
   const ClientHomeScreen({super.key});
@@ -38,7 +41,9 @@ class ClientHomeScreen extends ConsumerWidget {
     final completedCount = exercises.where((ex) => state.todaysLoggedExercises.contains(ex.name)).length;
     
     HomeWorkoutState workoutState = HomeWorkoutState.notStarted;
-    if (program == null) {
+    if (state.isRestDay) {
+      workoutState = HomeWorkoutState.restDay;
+    } else if (program == null) {
       workoutState = HomeWorkoutState.programComplete;
     } else if (completedCount == exercises.length && exercises.isNotEmpty) {
       workoutState = HomeWorkoutState.allDone;
@@ -66,7 +71,22 @@ class ClientHomeScreen extends ConsumerWidget {
                     SharedTopBar(
                       firstName: state.userName,
                       initials: state.userInitials,
-                      onLogout: () => ref.read(homeViewModelProvider.notifier).signOut(),
+                      onLogout: () {
+                        ConfirmDialog.show(
+                          context,
+                          title: 'Sign Out',
+                          message: 'Are you sure you want to sign out?',
+                          confirmText: 'Sign Out',
+                          confirmColor: AppColors.red,
+                          onConfirm: () async {
+                            await ref.read(homeViewModelProvider.notifier).signOut();
+                            ref.invalidate(homeViewModelProvider);
+                            if (context.mounted) {
+                              context.go(AppRoutes.signin);
+                            }
+                          },
+                        );
+                      },
                     ),
 
                     SizedBox(height: AppSizes.height(16)),
@@ -97,7 +117,10 @@ class ClientHomeScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          WorkoutHeader(workoutName: program.name),
+                          WorkoutHeader(
+                            workoutName: state.todayWorkoutName,
+                            dayNumber: state.currentDayNumber,
+                          ),
                           SizedBox(height: AppSizes.height(12)),
 
                           // Muscle Chips & Session Progress (NEW)
@@ -105,14 +128,32 @@ class ClientHomeScreen extends ConsumerWidget {
                             completedCount: completedCount,
                             totalCount: exercises.length,
                             calories: state.todaysCalories,
+                            muscleGroups: state.todaysMuscleGroups,
                           ),
                           SizedBox(height: AppSizes.height(16)),
 
-                          // Exercise Cards
+                           // Exercise Cards
                           if (exercises.isEmpty)
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: AppSizes.height(20)),
-                              child: Center(child: Text('No exercises in this program', style: AppTextStyles.font14RegularMuted)),
+                            Container(
+                              padding: EdgeInsets.symmetric(vertical: AppSizes.height(32), horizontal: AppSizes.width(24)),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.white.withOpacity(0.05)),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.hotel_class_outlined, color: AppColors.amber, size: 48),
+                                  SizedBox(height: AppSizes.height(16)),
+                                  Text('Rest Day', style: AppTextStyles.font20Bold),
+                                  SizedBox(height: AppSizes.height(8)),
+                                  Text(
+                                    'No exercises scheduled for Day ${state.currentDayNumber}. Enjoy your recovery!',
+                                    textAlign: TextAlign.center,
+                                    style: AppTextStyles.font14RegularMuted,
+                                  ),
+                                ],
+                              ),
                             )
                           else
                             ...exercises.map((ex) {

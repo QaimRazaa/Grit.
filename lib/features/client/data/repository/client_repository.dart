@@ -20,6 +20,7 @@ class ClientRepository {
         .select('*')
         .eq('client_id', userId)
         .eq('active', true)
+        .limit(1)
         .maybeSingle();
 
     if (assignmentResponse == null) return null;
@@ -55,7 +56,10 @@ class ClientRepository {
     final userId = _currentUserId;
     if (userId == null) return [];
 
-    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7)).toIso8601String().split('T')[0];
+    final sevenDaysAgo = DateTime.now()
+        .subtract(const Duration(days: 7))
+        .toIso8601String()
+        .split('T')[0];
 
     final response = await _supabase
         .from('workout_logs')
@@ -63,7 +67,7 @@ class ClientRepository {
         .eq('client_id', userId)
         .gte('date', sevenDaysAgo);
 
-    return (response as List).map((row) => row['date'] as String).toList();
+    return (response as List).map((row) => row['date']?.toString() ?? '').where((d) => d.isNotEmpty).toList();
   }
 
   /// Fetches detailed logs for the last 7 days for calorie/time/volume calculation.
@@ -72,7 +76,11 @@ class ClientRepository {
     if (userId == null) return [];
 
     final now = DateTime.now();
-    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
     final mondayStr = monday.toIso8601String().split('T')[0];
 
     final response = await _supabase
@@ -90,10 +98,14 @@ class ClientRepository {
     if (userId == null) return [];
 
     final now = DateTime.now();
-    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
     final prevMonday = monday.subtract(const Duration(days: 7));
     final prevSunday = monday.subtract(const Duration(seconds: 1));
-    
+
     final prevMondayStr = prevMonday.toIso8601String().split('T')[0];
     final prevSundayStr = prevSunday.toIso8601String().split('T')[0];
 
@@ -155,7 +167,9 @@ class ClientRepository {
     if (streak.lastLoggedDate != null) {
       final lastLogged = streak.lastLoggedDate!;
       final difference = DateTime(today.year, today.month, today.day)
-          .difference(DateTime(lastLogged.year, lastLogged.month, lastLogged.day))
+          .difference(
+            DateTime(lastLogged.year, lastLogged.month, lastLogged.day),
+          )
           .inDays;
 
       if (difference == 0) {
@@ -169,13 +183,18 @@ class ClientRepository {
         newStreak = streak.currentStreak + 1;
       }
 
-      final newLongest = newStreak > streak.longestStreak ? newStreak : streak.longestStreak;
+      final newLongest = newStreak > streak.longestStreak
+          ? newStreak
+          : streak.longestStreak;
 
-      await _supabase.from('streaks').update({
-        'current_streak': newStreak,
-        'last_logged_date': todayStr,
-        'longest_streak': newLongest,
-      }).eq('client_id', userId);
+      await _supabase
+          .from('streaks')
+          .update({
+            'current_streak': newStreak,
+            'last_logged_date': todayStr,
+            'longest_streak': newLongest,
+          })
+          .eq('client_id', userId);
     }
   }
 
@@ -192,7 +211,10 @@ class ClientRepository {
         .eq('client_id', userId)
         .eq('date', today);
 
-    return (response as List).map((row) => row['exercise_name'] as String).toSet();
+    return (response as List)
+        .map((row) => row['exercise_name']?.toString() ?? '')
+        .where((name) => name.isNotEmpty)
+        .toSet();
   }
 
   /// Fetches the user's goal form (containing weight, height, etc.)
@@ -203,7 +225,7 @@ class ClientRepository {
     return await _supabase
         .from('goal_forms')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', userId) // Matches snake_case in DB
         .maybeSingle();
   }
 }

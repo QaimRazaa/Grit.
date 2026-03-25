@@ -88,6 +88,7 @@ class YourProgress extends ConsumerWidget {
               child: _SmallStatCard(
                 title: AppTexts.bodyWeight,
                 value: state.weight,
+                filledDots: state.weeklyWorkouts.clamp(0, 3),
               ),
             ),
             SizedBox(width: AppSizes.width(10)),
@@ -95,6 +96,7 @@ class YourProgress extends ConsumerWidget {
               child: _SmallStatCard(
                 title: AppTexts.bodyFat,
                 value: state.bodyFat,
+                filledDots: (state.streak?.currentStreak ?? 0).clamp(0, 3),
               ),
             ),
           ],
@@ -108,10 +110,12 @@ class YourProgress extends ConsumerWidget {
 class _SmallStatCard extends StatelessWidget {
   final String title;
   final String value;
+  final int filledDots;
 
   const _SmallStatCard({
     required this.title,
     required this.value,
+    this.filledDots = 0,
   });
 
   @override
@@ -133,9 +137,9 @@ class _SmallStatCard extends StatelessWidget {
           SizedBox(height: AppSizes.height(6)),
           Text(value, style: AppTextStyles.font18Bold),
           SizedBox(height: AppSizes.height(8)),
-          const DotProgressRow(
+          DotProgressRow(
             totalDots: 3,
-            filledDots: 2,
+            filledDots: filledDots,
           ),
         ],
       ),

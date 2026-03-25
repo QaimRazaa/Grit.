@@ -54,8 +54,7 @@ class ProgramRepository {
     final response = await _supabase
         .from('workout_programs')
         .select()
-        .eq('created_by', userId)
-        .order('created_at', ascending: false);
+        .eq('created_by', userId);
 
     return (response as List)
         .map((e) => WorkoutProgramModel.fromJson(e as Map<String, dynamic>))
@@ -121,38 +120,44 @@ class ProgramRepository {
     if (assignments.isEmpty) return [];
 
     final clientIds = assignments.map((e) => e['client_id'] as String).toList();
-    final programIds = assignments.map((e) => e['program_id'] as String).toList();
+    final programIds = assignments
+        .map((e) => e['program_id'] as String)
+        .toList();
 
     // 2. Load names separately
     final profiles = await _supabase
         .from('profiles')
         .select('id, full_name')
         .filter('id', 'in', clientIds);
-    
+
     final programs = await _supabase
         .from('workout_programs')
         .select('id, name, exercises')
         .filter('id', 'in', programIds);
 
-    final profileMap = {for (var p in profiles as List) p['id'] as String: p['full_name']};
+    final profileMap = {
+      for (var p in profiles as List) p['id'] as String: p['full_name'],
+    };
     final programMap = {for (var p in programs as List) p['id'] as String: p};
 
     return assignments.map((e) {
       final map = Map<String, dynamic>.from(e);
       map['client_name'] = profileMap[e['client_id']] ?? 'Unknown Client';
-      
+
       final programData = programMap[e['program_id']];
       if (programData != null) {
         map['program_name'] = programData['name'];
         map['exercises'] = programData['exercises'];
       }
-      
+
       return ProgramAssignmentModel.fromJson(map);
     }).toList();
   }
 
   /// Loads all workout logs from today across all assigned clients.
-  Future<List<Map<String, dynamic>>> loadTodaysLogsAcrossClients(List<String> clientIds) async {
+  Future<List<Map<String, dynamic>>> loadTodaysLogsAcrossClients(
+    List<String> clientIds,
+  ) async {
     if (clientIds.isEmpty) return [];
 
     final today = DateTime.now().toIso8601String().split('T')[0];
@@ -242,7 +247,7 @@ class ProgramRepository {
         .eq('date', today)
         .filter('client_id', 'in', clientIds);
 
-    return (response as List).map((e) => e['client_id']).toSet().length;
+    return (response as List).map((e) => e['client_id']?.toString() ?? '').where((id) => id.isNotEmpty).toSet().length;
   }
 
   /// Assigns a program to a client.
@@ -256,6 +261,14 @@ class ProgramRepository {
     final userId = _currentUserId;
     if (userId == null) throw Exception('User not authenticated');
 
+    // 1. Deactivate any existing active programs for this client
+    await _supabase
+        .from('program_assignments')
+        .update({'active': false})
+        .eq('client_id', clientId)
+        .eq('active', true);
+
+    // 2. Insert new assignment
     await _supabase.from('program_assignments').insert({
       'program_id': programId,
       'client_id': clientId,
@@ -306,10 +319,13 @@ class ProgramRepository {
 
     final result = {
       'profile': profile,
-      'assignment': assignmentResponse != null ? {
-        ...assignmentResponse,
-        'program_name': (assignmentResponse['workout_programs'] as Map?)?['name'],
-      } : null,
+      'assignment': assignmentResponse != null
+          ? {
+              ...assignmentResponse,
+              'program_name':
+                  (assignmentResponse['workout_programs'] as Map?)?['name'],
+            }
+          : null,
       'streak': streakResponse,
     };
 

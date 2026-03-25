@@ -29,7 +29,7 @@ class GoalFormModel {
 
   factory GoalFormModel.fromJson(Map<String, dynamic> json) {
     return GoalFormModel(
-      userId: json['user_id'] as String,
+      userId: json['user_id']?.toString() ?? '',
       primaryGoal: json['primary_goal']?.toString(),
       weight: json['weight']?.toString(),
       height: json['height']?.toString(),

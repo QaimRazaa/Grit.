@@ -75,3 +75,17 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final supabase = ref.watch(supabaseClientProvider);
   return AuthRepository(supabase);
 });
+
+/// Stream of auth state changes [AuthChangeEvent]
+final authStateProvider = StreamProvider<AuthState>((ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges;
+});
+
+/// Current authenticated user
+final currentUserProvider = Provider<User?>((ref) {
+  final authState = ref.watch(authStateProvider);
+  return authState.maybeWhen(
+    data: (state) => state.session?.user,
+    orElse: () => ref.read(authRepositoryProvider).currentUser,
+  );
+});

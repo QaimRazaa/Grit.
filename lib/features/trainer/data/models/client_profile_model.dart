@@ -29,15 +29,15 @@ class ClientProfileModel {
 
   factory ClientProfileModel.fromJson(Map<String, dynamic> json) {
     return ClientProfileModel(
-      id: json['id'].toString(),
-      fullName: json['full_name']?.toString() ?? '',
+      id: json['id']?.toString() ?? '',
+      fullName: json['full_name']?.toString() ?? 'Guest',
       primaryGoal: json['primary_goal']?.toString(),
       experienceLevel: json['experience_level']?.toString(),
       daysPerWeek: int.tryParse(json['days_per_week']?.toString() ?? ''),
-      streak: json['streak'] != null
+      streak: json['streak'] != null && json['streak'] is Map<String, dynamic>
           ? StreakModel.fromJson(json['streak'] as Map<String, dynamic>)
           : null,
-      last7Days: json['last_7_days'] != null
+      last7Days: json['last_7_days'] != null && json['last_7_days'] is List
           ? List<bool>.from(json['last_7_days'] as List)
           : null,
     );

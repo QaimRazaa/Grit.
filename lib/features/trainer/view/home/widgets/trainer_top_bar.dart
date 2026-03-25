@@ -8,6 +8,7 @@ import 'package:grit/utils/constants/colors.dart';
 import 'package:grit/utils/constants/texts.dart';
 import 'package:grit/utils/constants/text_styles.dart';
 import 'package:grit/utils/device/responsive_size.dart';
+import 'package:grit/shared/widgets/dialogs/confirm_dialog.dart';
 
 class TrainerTopBar extends ConsumerWidget {
   const TrainerTopBar({super.key});
@@ -54,11 +55,20 @@ class TrainerTopBar extends ConsumerWidget {
             children: [
               // Signout button
               IconButton(
-                onPressed: () async {
-                  await ref.read(authRepositoryProvider).signOut();
-                  if (context.mounted) {
-                    context.go(AppRoutes.signin);
-                  }
+                onPressed: () {
+                  ConfirmDialog.show(
+                    context,
+                    title: 'Sign Out',
+                    message: 'Are you sure you want to sign out?',
+                    confirmText: 'Sign Out',
+                    confirmColor: AppColors.red,
+                    onConfirm: () async {
+                      await ref.read(authRepositoryProvider).signOut();
+                      if (context.mounted) {
+                        context.go(AppRoutes.signin);
+                      }
+                    },
+                  );
                 },
                 icon: Icon(
                   Icons.logout_rounded,

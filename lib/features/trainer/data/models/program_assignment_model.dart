@@ -27,15 +27,15 @@ class ProgramAssignmentModel {
 
   factory ProgramAssignmentModel.fromJson(Map<String, dynamic> json) {
     return ProgramAssignmentModel(
-      id: json['id'].toString(),
-      programId: json['program_id'].toString(),
-      clientId: json['client_id'].toString(),
-      clientName: json['client_name']?.toString(),
-      programName: json['program_name']?.toString(),
-      exerciseNames: (json['exercises'] as List?)?.map((e) => e['name'].toString()).toList(),
-      startDate: DateTime.parse(json['start_date']),
-      durationWeeks: json['duration_weeks'] ?? 12,
-      active: json['active'] ?? true,
+      id: json['id']?.toString() ?? '',
+      programId: json['program_id']?.toString() ?? '',
+      clientId: json['client_id']?.toString() ?? '',
+      clientName: json['client_name']?.toString() ?? 'Client',
+      programName: json['program_name']?.toString() ?? 'Workout',
+      exerciseNames: (json['exercises'] as List?)?.map((e) => e['name']?.toString() ?? '').toList(),
+      startDate: DateTime.tryParse(json['start_date']?.toString() ?? '') ?? DateTime.now(),
+      durationWeeks: int.tryParse(json['duration_weeks']?.toString() ?? '12') ?? 12,
+      active: json['active'] == true,
     );
   }
 

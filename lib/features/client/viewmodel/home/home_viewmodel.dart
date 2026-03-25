@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grit/features/authentication/data/repository/auth_repository.dart';
 import 'package:grit/features/client/data/repository/client_repository.dart';
 import 'package:grit/features/trainer/data/models/workout_program_model.dart';
 import 'package:grit/features/trainer/data/models/streak_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:grit/utils/helpers/calorie_helper.dart';
 import 'package:grit/utils/helpers/body_metrics_helper.dart';
 
@@ -24,6 +26,10 @@ class HomeState {
   final String weight;
   final String bodyFat;
   final double strengthTrend;
+  final int currentDayNumber;
+  final String todayWorkoutName;
+  final List<String> todaysMuscleGroups;
+  final bool isRestDay;
   final bool isLoading;
   final String? error;
 
@@ -45,6 +51,10 @@ class HomeState {
     this.weight = '--',
     this.bodyFat = '--',
     this.strengthTrend = 0.0,
+    this.currentDayNumber = 1,
+    this.todayWorkoutName = 'Workout',
+    this.todaysMuscleGroups = const [],
+    this.isRestDay = false,
     this.isLoading = false,
     this.error,
   });
@@ -69,6 +79,10 @@ class HomeState {
     String? weight,
     String? bodyFat,
     double? strengthTrend,
+    int? currentDayNumber,
+    String? todayWorkoutName,
+    List<String>? todaysMuscleGroups,
+    bool? isRestDay,
     bool? isLoading,
     Object? error = _unset,
   }) {
@@ -90,6 +104,10 @@ class HomeState {
       weight: weight ?? this.weight,
       bodyFat: bodyFat ?? this.bodyFat,
       strengthTrend: strengthTrend ?? this.strengthTrend,
+      currentDayNumber: currentDayNumber ?? this.currentDayNumber,
+      todayWorkoutName: todayWorkoutName ?? this.todayWorkoutName,
+      todaysMuscleGroups: todaysMuscleGroups ?? this.todaysMuscleGroups,
+      isRestDay: isRestDay ?? this.isRestDay,
       isLoading: isLoading ?? this.isLoading,
       error: error == _unset ? this.error : error as String?,
     );
@@ -99,19 +117,29 @@ class HomeState {
 class HomeViewModel extends StateNotifier<HomeState> {
   final AuthRepository _authRepository;
   final ClientRepository _clientRepository;
+  final User? _initialUser;
 
-  HomeViewModel(this._authRepository, this._clientRepository) : super(HomeState()) {
-    refresh();
+  HomeViewModel(this._authRepository, this._clientRepository, this._initialUser) : super(HomeState()) {
+    if (_initialUser != null) {
+      refresh();
+    }
   }
 
   Future<void> refresh() async {
+    final now = DateTime.now();
+    if (!mounted) return;
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final user = _authRepository.currentUser;
-      if (user == null) return;
+      final user = _initialUser ?? _authRepository.currentUser;
+      if (user == null) {
+        if (!mounted) return;
+        state = state.copyWith(isLoading: false);
+        return;
+      }
       
       final profile = await _authRepository.getUserProfile(user.id);
       final assignment = await _clientRepository.fetchActiveAssignment();
+      
       final streak = await _clientRepository.fetchStreak();
       final activity = await _clientRepository.fetchLast7DaysActivity();
       final todaysLogs = await _clientRepository.fetchTodaysLoggedExercises();
@@ -120,11 +148,35 @@ class HomeViewModel extends StateNotifier<HomeState> {
       final prevWeeklyLogs = await _clientRepository.fetchPreviousWeeklyLogs();
 
       WorkoutProgramModel? program;
-      if (assignment != null && assignment['workout_programs'] != null) {
-        program = WorkoutProgramModel.fromJson(assignment['workout_programs']);
+      int currentDayNumber = 1;
+      if (assignment != null) {
+        final startDateStr = assignment['start_date']?.toString();
+
+        if (startDateStr != null) {
+          final startDate = DateTime.tryParse(startDateStr);
+          if (startDate != null) {
+            final diff = now.difference(DateTime(startDate.year, startDate.month, startDate.day)).inDays;
+            currentDayNumber = diff + 1;
+          }
+        }
+
+        if (assignment['workout_programs'] != null) {
+          final rawProgram = WorkoutProgramModel.fromJson(assignment['workout_programs']);
+          
+          // Filter exercises for current day of week (1-7)
+          final programDay = (currentDayNumber - 1) % 7 + 1;
+
+          final filteredExercises = rawProgram.exercises
+              .where((e) => e.day == programDay)
+              .toList();
+          
+          program = rawProgram.copyWith(exercises: filteredExercises);
+        }
       }
 
-      // Parse user weight
+      final isRestDay = program != null && program.exercises.isEmpty;
+
+      // Parse user weight using safe helper
       final weightVal = goalForm?['weight']?.toString().replaceAll(RegExp(r'[^0-9.]'), '') ?? '70';
       final weightNum = double.tryParse(weightVal) ?? 70.0;
 
@@ -143,10 +195,11 @@ class HomeViewModel extends StateNotifier<HomeState> {
       // Group weekly logs by date to count unique exercises per day
       final logsByDate = <String, Set<String>>{};
       for (final log in weeklyLogs) {
-        final date = log['date'] as String;
-        final exerciseName = log['exercise_name'] as String;
+        final date = log['date']?.toString() ?? '';
+        final exerciseName = log['exercise_name']?.toString() ?? '';
+        if (date.isEmpty) continue;
+
         uniqueDays.add(date);
-        
         logsByDate.putIfAbsent(date, () => {}).add(exerciseName);
       }
 
@@ -168,7 +221,6 @@ class HomeViewModel extends StateNotifier<HomeState> {
       final daysPerWeek = int.tryParse(daysPerWeekStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 4;
 
       // 4. Calculate Current Week's Streak Status (Mon-Sun)
-      final now = DateTime.now();
       final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
       final List<bool> weekStatus = [];
       for (int i = 0; i < 7; i++) {
@@ -181,7 +233,7 @@ class HomeViewModel extends StateNotifier<HomeState> {
       String userName = 'Guest';
       String userInitials = 'G';
       if (profile != null) {
-        final fullName = profile['full_name'] as String? ?? 'Guest';
+        final fullName = profile['full_name']?.toString() ?? 'Guest';
         final names = fullName.trim().split(' ');
         userName = names.isNotEmpty ? names[0] : 'Guest';
         userInitials = names.isNotEmpty 
@@ -249,9 +301,20 @@ class HomeViewModel extends StateNotifier<HomeState> {
         weight: weightDisplay,
         bodyFat: bodyFatDisplay,
         strengthTrend: trend,
+        currentDayNumber: currentDayNumber,
+        todayWorkoutName: program?.name ?? 'Workout',
+        todaysMuscleGroups: (program?.name.toString() ?? '')
+          .replaceAll(RegExp(r'[^\w\s]'), ' ') // spaces for punctuation
+          .split(' ')
+          .where((s) => s.length > 3) // basic filter for labels
+          .toList(),
+        isRestDay: isRestDay,
         isLoading: false,
       );
-    } catch (e) {
+    } catch (e, stack) {
+      if (!mounted) return;
+      debugPrint('HOME_VIEWMODEL ERROR: $e');
+      debugPrint('STACK: $stack');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -260,11 +323,14 @@ class HomeViewModel extends StateNotifier<HomeState> {
   }
 
   Future<void> signOut() async {
+    if (!mounted) return;
     state = state.copyWith(isLoading: true);
     try {
       await _authRepository.signOut();
+      if (!mounted) return;
       state = state.copyWith(isLoading: false);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -274,8 +340,9 @@ class HomeViewModel extends StateNotifier<HomeState> {
 }
 
 final homeViewModelProvider =
-    StateNotifierProvider<HomeViewModel, HomeState>((ref) {
+    StateNotifierProvider.autoDispose<HomeViewModel, HomeState>((ref) {
+  final user = ref.watch(currentUserProvider);
   final authRepository = ref.watch(authRepositoryProvider);
   final clientRepository = ref.watch(clientRepositoryProvider);
-  return HomeViewModel(authRepository, clientRepository);
+  return HomeViewModel(authRepository, clientRepository, user);
 });

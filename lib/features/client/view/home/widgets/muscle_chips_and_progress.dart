@@ -10,12 +10,14 @@ class MuscleChipsAndProgress extends StatelessWidget {
   final int completedCount;
   final int totalCount;
   final int calories;
+  final List<String> muscleGroups;
 
   const MuscleChipsAndProgress({
     super.key,
     required this.completedCount,
     required this.totalCount,
     this.calories = 0,
+    this.muscleGroups = const [],
   });
 
   @override
@@ -26,24 +28,24 @@ class MuscleChipsAndProgress extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // A) Horizontal scrollable chip row
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: ['CHEST', 'SHOULDERS', 'TRICEPS']
-                .asMap()
-                .entries
-                .map((entry) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  right: entry.key < 2 ? AppSizes.width(8) : 0,
-                ),
-                child: AmberChip(label: entry.value),
-              );
-            }).toList(),
+        if (muscleGroups.isNotEmpty) ...[
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: muscleGroups.asMap().entries.map((entry) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    right: entry.key < muscleGroups.length - 1
+                        ? AppSizes.width(8)
+                        : 0,
+                  ),
+                  child: AmberChip(label: entry.value.toUpperCase()),
+                );
+              }).toList(),
+            ),
           ),
-        ),
-
-        SizedBox(height: AppSizes.height(16)),
+          SizedBox(height: AppSizes.height(16)),
+        ],
 
         // Calorie burn estimate
         if (calories > 0) ...[

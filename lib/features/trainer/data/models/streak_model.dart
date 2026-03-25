@@ -13,12 +13,12 @@ class StreakModel {
 
   factory StreakModel.fromJson(Map<String, dynamic> json) {
     return StreakModel(
-      userId: json['client_id'] as String,
-      currentStreak: json['current_streak'] as int? ?? 0,
+      userId: json['client_id']?.toString() ?? '',
+      currentStreak: int.tryParse(json['current_streak']?.toString() ?? '0') ?? 0,
       lastLoggedDate: json['last_logged_date'] != null 
-          ? DateTime.parse(json['last_logged_date']) 
+          ? DateTime.tryParse(json['last_logged_date']?.toString() ?? '') 
           : null,
-      longestStreak: json['longest_streak'] as int? ?? 0,
+      longestStreak: int.tryParse(json['longest_streak']?.toString() ?? '0') ?? 0,
     );
   }
 

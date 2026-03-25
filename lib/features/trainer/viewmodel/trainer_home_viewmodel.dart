@@ -3,6 +3,8 @@ import '../data/models/client_profile_model.dart';
 import '../data/models/program_assignment_model.dart';
 import '../data/models/streak_model.dart';
 import '../data/repository/program_repository.dart';
+import 'package:grit/features/authentication/data/repository/auth_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TrainerHomeState {
   final int totalClients;
@@ -60,14 +62,22 @@ class TrainerHomeState {
 
 class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
   final ProgramRepository _repository;
+  final User? _authUser;
 
-  TrainerHomeViewModel(this._repository) : super(TrainerHomeState()) {
-    refresh();
+  TrainerHomeViewModel(this._repository, this._authUser) : super(TrainerHomeState()) {
+    if (_authUser != null) {
+      refresh();
+    }
   }
 
   Future<void> refresh() async {
+    if (!mounted) return;
     state = state.copyWith(isLoading: true, error: null);
     try {
+      if (_authUser == null) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
       final clients = await _repository.loadClients();
       final clientIds = clients.map((c) => c.id).toList();
 
@@ -141,6 +151,7 @@ class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
         isLoading: false,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -149,7 +160,8 @@ class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
 
 
 final trainerHomeProvider =
-    StateNotifierProvider<TrainerHomeViewModel, TrainerHomeState>((ref) {
+    StateNotifierProvider.autoDispose<TrainerHomeViewModel, TrainerHomeState>((ref) {
+  final user = ref.watch(currentUserProvider);
   final repository = ref.watch(programRepositoryProvider);
-  return TrainerHomeViewModel(repository);
+  return TrainerHomeViewModel(repository, user);
 });

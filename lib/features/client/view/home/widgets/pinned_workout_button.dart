@@ -72,6 +72,24 @@ class PinnedWorkoutButton extends StatelessWidget {
         bgColor = AppColors.amber;
         onPressed = () => context.push(AppRoutes.activeWorkout);
         break;
+      case HomeWorkoutState.restDay:
+        titleText = 'Enjoy your Rest Day!';
+        bgColor = AppColors.surface2;
+        onPressed = null;
+        return Positioned(
+          left: AppSizes.width(20),
+          right: AppSizes.width(20),
+          bottom: AppSizes.height(12),
+          child: CustomElevatedButton(
+            text: titleText,
+            backgroundColor: bgColor,
+            textColor: AppColors.dim,
+            borderRadius: 16,
+            padding: EdgeInsets.symmetric(vertical: AppSizes.height(18)),
+            fontSize: AppSizes.font(15),
+            onPressed: onPressed,
+          ),
+        );
     }
 
     return Positioned(
