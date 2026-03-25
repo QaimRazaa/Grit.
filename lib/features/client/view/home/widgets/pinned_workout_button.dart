@@ -107,7 +107,7 @@ class PinnedWorkoutButton extends StatelessWidget {
                 Text(
                   AppTexts.homeWorkoutEstimatedTime,
                   style: AppTextStyles.font12Regular.copyWith(
-                    color: AppColors.background.withOpacity(0.6), // 60% opacity
+                    color: AppColors.background.withValues(alpha: 0.6), // 60% opacity
                   ),
                 ),
               ],

@@ -17,7 +17,7 @@ class ExitWorkoutBottomSheet extends StatelessWidget {
     return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.6), // 60% opacity backdrop
+      barrierColor: Colors.black.withValues(alpha: 0.6), // 60% opacity backdrop
       builder: (ctx) => ExitWorkoutBottomSheet(onEndWorkout: onEndWorkout),
     );
   }

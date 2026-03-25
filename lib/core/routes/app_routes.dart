@@ -13,6 +13,12 @@ class AppRoutes {
   static const String goalStep4 = '/goal-step-4';
   static const String activeWorkout = '/client/active-workout';
   static const String workoutComplete = '/workout-complete';
+  static const String trainerPrograms = '/trainer/programs';
+  static const String programBuilder = '/trainer/programs/builder';
+  static const String assignProgram = '/trainer/assign';
+  static const String clientProfile = '/trainer/client-profile';
+  static const String trainerLogs = '/trainer/logs';
 
   AppRoutes._();
+
 }

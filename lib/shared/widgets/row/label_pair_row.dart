@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grit/utils/constants/colors.dart';
 import 'package:grit/utils/constants/text_styles.dart';
-import 'package:grit/utils/device/responsive_size.dart';
+
 
 /// A row with a left label and right label, spaced between.
 /// Used for "SESSION PROGRESS" ↔ "2 OF 6 EXERCISES DONE" etc.

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:grit/features/client/viewmodel/home/home_viewmodel.dart';
 import 'package:grit/shared/widgets/card/surface_card.dart';
 import 'package:grit/shared/widgets/row/dot_progress_row.dart';
 import 'package:grit/shared/widgets/row/mini_bar_chart.dart';
@@ -8,11 +10,21 @@ import 'package:grit/utils/constants/texts.dart';
 import 'package:grit/utils/constants/text_styles.dart';
 import 'package:grit/utils/device/responsive_size.dart';
 
-class YourProgress extends StatelessWidget {
+class YourProgress extends ConsumerWidget {
   const YourProgress({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(homeViewModelProvider);
+    
+    // Generate last 7 days data points
+    final today = DateTime.now();
+    final List<double> dataPoints = [];
+    for (int i = 6; i >= 0; i--) {
+      final date = today.subtract(Duration(days: i)).toIso8601String().split('T')[0];
+      dataPoints.add(state.weeklyExerciseCounts[date]?.toDouble() ?? 0.0);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -42,24 +54,26 @@ class YourProgress extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '+12%',
-                        style: AppTextStyles.font20Bold.copyWith(
-                          color: AppColors.amber,
+                        '${state.strengthTrend > 0 ? '+' : ''}${state.strengthTrend.toStringAsFixed(0)}%',
+                        style: AppTextStyles.font18SemiBold.copyWith(
+                          color: state.strengthTrend > 0 ? AppColors.amber : (state.strengthTrend < 0 ? AppColors.red : AppColors.muted),
                         ),
                       ),
-                      SizedBox(width: AppSizes.width(6)),
-                      Icon(
-                        Icons.trending_up,
-                        color: AppColors.green,
-                        size: AppSizes.font(18),
-                      ),
+                      if (state.strengthTrend.abs() >= 0.5) ...[
+                        SizedBox(width: AppSizes.width(6)),
+                        Icon(
+                          state.strengthTrend > 0 ? Icons.trending_up : Icons.trending_down,
+                          color: state.strengthTrend > 0 ? AppColors.green : AppColors.red,
+                          size: AppSizes.font(18),
+                        ),
+                      ],
                     ],
                   ),
                 ],
               ),
               // Shared mini bar chart
-              const MiniBarChart(
-                heights: [12, 16, 20, 18, 24],
+              MiniBarChart(
+                dataPoints: dataPoints,
               ),
             ],
           ),
@@ -73,14 +87,14 @@ class YourProgress extends StatelessWidget {
             Expanded(
               child: _SmallStatCard(
                 title: AppTexts.bodyWeight,
-                value: '184.2 lbs',
+                value: state.weight,
               ),
             ),
             SizedBox(width: AppSizes.width(10)),
             Expanded(
               child: _SmallStatCard(
                 title: AppTexts.bodyFat,
-                value: '14.2%',
+                value: state.bodyFat,
               ),
             ),
           ],
@@ -94,14 +108,10 @@ class YourProgress extends StatelessWidget {
 class _SmallStatCard extends StatelessWidget {
   final String title;
   final String value;
-  final int totalDots;
-  final int filledDots;
 
   const _SmallStatCard({
     required this.title,
     required this.value,
-    this.totalDots = 3,
-    this.filledDots = 2,
   });
 
   @override
@@ -123,9 +133,9 @@ class _SmallStatCard extends StatelessWidget {
           SizedBox(height: AppSizes.height(6)),
           Text(value, style: AppTextStyles.font18Bold),
           SizedBox(height: AppSizes.height(8)),
-          DotProgressRow(
-            totalDots: totalDots,
-            filledDots: filledDots,
+          const DotProgressRow(
+            totalDots: 3,
+            filledDots: 2,
           ),
         ],
       ),

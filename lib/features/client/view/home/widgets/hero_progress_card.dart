@@ -8,10 +8,23 @@ import 'package:grit/utils/constants/text_styles.dart';
 import 'package:grit/utils/device/responsive_size.dart';
 
 class HeroProgressCard extends StatelessWidget {
-  const HeroProgressCard({super.key});
+  final int calories;
+  final int workouts;
+  final String totalTime;
+  final double progress;
+
+  const HeroProgressCard({
+    super.key,
+    this.calories = 0,
+    this.workouts = 0,
+    this.totalTime = '0H 0M',
+    this.progress = 0.0,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final int progressPercent = (progress * 100).round();
+    
     return SurfaceCard(
       borderRadius: 20,
       padding: EdgeInsets.symmetric(
@@ -20,7 +33,7 @@ class HeroProgressCard extends StatelessWidget {
       ),
       boxShadow: [
         BoxShadow(
-          color: AppColors.amber.withOpacity(0.06),
+          color: AppColors.amber.withValues(alpha: 0.06),
           blurRadius: AppSizes.width(20),
           spreadRadius: 0,
         ),
@@ -35,19 +48,19 @@ class HeroProgressCard extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.amber.withOpacity(0.15),
+                  color: AppColors.amber.withValues(alpha: 0.15),
                   blurRadius: AppSizes.width(20),
                 ),
               ],
             ),
             child: CustomPaint(
-              painter: ProgressRingPainter(progress: 0.71, strokeWidth: 8),
+              painter: ProgressRingPainter(progress: progress, strokeWidth: 8),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '71%',
+                      '$progressPercent%',
                       style: AppTextStyles.font18Bold.copyWith(
                         color: AppColors.amber,
                       ),
@@ -74,21 +87,21 @@ class HeroProgressCard extends StatelessWidget {
               children: [
                 IconStatRow(
                   icon: Icons.local_fire_department_rounded,
-                  value: '2,840',
+                  value: calories.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},'),
                   label: AppTexts.heroKcalBurned,
                   valueColor: AppColors.amber,
                 ),
                 SizedBox(height: AppSizes.height(12)),
                 IconStatRow(
                   icon: Icons.fitness_center,
-                  value: '4',
+                  value: workouts.toString(),
                   label: AppTexts.heroWorkouts,
                   valueColor: AppColors.amber,
                 ),
                 SizedBox(height: AppSizes.height(12)),
                 IconStatRow(
                   icon: Icons.timer_outlined,
-                  value: '3H 20M',
+                  value: totalTime,
                   label: AppTexts.heroTotalTime,
                   valueColor: AppColors.white,
                 ),

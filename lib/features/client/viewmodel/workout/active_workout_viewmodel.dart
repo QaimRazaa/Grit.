@@ -1,19 +1,24 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/repository/client_repository.dart';
+import '../home/home_viewmodel.dart';
 
 class WorkoutExercise {
   final String name;
   final int totalSets;
   final int targetReps;
+  final int restSeconds;
 
   const WorkoutExercise({
     required this.name,
     required this.totalSets,
     required this.targetReps,
+    this.restSeconds = 60,
   });
 }
 
 class ActiveWorkoutState {
+  final String? assignmentId;
   final List<WorkoutExercise> exercises;
   final int currentExerciseIndex;
   final int currentSet; // 1-indexed
@@ -28,7 +33,8 @@ class ActiveWorkoutState {
   final Set<String> loggedSets;
 
   const ActiveWorkoutState({
-    required this.exercises,
+    this.assignmentId,
+    this.exercises = const [],
     this.currentExerciseIndex = 0,
     this.currentSet = 1,
     this.currentReps = 0,
@@ -42,6 +48,7 @@ class ActiveWorkoutState {
   });
 
   ActiveWorkoutState copyWith({
+    String? assignmentId,
     List<WorkoutExercise>? exercises,
     int? currentExerciseIndex,
     int? currentSet,
@@ -55,6 +62,7 @@ class ActiveWorkoutState {
     Set<String>? loggedSets,
   }) {
     return ActiveWorkoutState(
+      assignmentId: assignmentId ?? this.assignmentId,
       exercises: exercises ?? this.exercises,
       currentExerciseIndex: currentExerciseIndex ?? this.currentExerciseIndex,
       currentSet: currentSet ?? this.currentSet,
@@ -71,20 +79,13 @@ class ActiveWorkoutState {
 }
 
 class ActiveWorkoutViewModel extends StateNotifier<ActiveWorkoutState> {
+  final ClientRepository _repository;
   Timer? _restTimer;
 
-  ActiveWorkoutViewModel() : super(const ActiveWorkoutState(
-    exercises: [
-      WorkoutExercise(name: 'Bench Press', totalSets: 4, targetReps: 10),
-      WorkoutExercise(name: 'Incline DB Press', totalSets: 3, targetReps: 12),
-      WorkoutExercise(name: 'Cable Flyes', totalSets: 3, targetReps: 15),
-      WorkoutExercise(name: 'Tricep Pushdown', totalSets: 3, targetReps: 12),
-    ],
-    currentExerciseIndex: 0,
-    currentSet: 2,
-    loggedSets: {"0_1"}, // Fake data: On exercise 1, set 2 of 4 (set 1 done)
-  )) {
-    state = state.copyWith(currentReps: state.exercises[0].targetReps);
+  ActiveWorkoutViewModel(this._repository, ActiveWorkoutState initialState) : super(initialState) {
+    if (state.exercises.isNotEmpty) {
+      state = state.copyWith(currentReps: state.exercises[0].targetReps);
+    }
   }
 
   void incrementReps() {
@@ -108,45 +109,69 @@ class ActiveWorkoutViewModel extends StateNotifier<ActiveWorkoutState> {
   }
 
   Future<void> logSet() async {
-    if (state.isLoggingSet) return;
+    if (state.isLoggingSet || state.assignmentId == null) {
+      return;
+    }
     
     state = state.copyWith(isLoggingSet: true);
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    final newLoggedSets = Set<String>.from(state.loggedSets);
-    newLoggedSets.add('${state.currentExerciseIndex}_${state.currentSet}');
-    final newVolume = state.totalVolumeLifted + (state.currentReps * state.currentWeight);
     
-    final currentEx = state.exercises[state.currentExerciseIndex];
-    
-    if (state.currentSet >= currentEx.totalSets) {
-      if (state.currentExerciseIndex < state.exercises.length - 1) {
-        state = state.copyWith(
-          loggedSets: newLoggedSets,
-          totalVolumeLifted: newVolume,
-          currentExerciseIndex: state.currentExerciseIndex + 1,
-          currentSet: 1,
-          currentReps: state.exercises[state.currentExerciseIndex + 1].targetReps,
-          isResting: false,
-          isLoggingSet: false,
-        );
-      } else {
-        state = state.copyWith(
-          loggedSets: newLoggedSets,
-          totalVolumeLifted: newVolume,
-          isLoggingSet: false,
-          isWorkoutComplete: true,
-        );
-      }
-    } else {
-      state = state.copyWith(
-        loggedSets: newLoggedSets,
-        totalVolumeLifted: newVolume,
-        isResting: true,
-        restSecondsRemaining: 60,
-        isLoggingSet: false,
+    try {
+      final currentEx = state.exercises[state.currentExerciseIndex];
+      
+      // Log to Supabase
+      await _repository.logExercise(
+        assignmentId: state.assignmentId!,
+        exerciseName: currentEx.name,
+        setNumber: state.currentSet,
+        reps: state.currentReps,
+        weight: state.currentWeight,
       );
-      _startRestTimer();
+
+      final newLoggedSets = Set<String>.from(state.loggedSets);
+      newLoggedSets.add('${state.currentExerciseIndex}_${state.currentSet}');
+      final newVolume = state.totalVolumeLifted + (state.currentReps * state.currentWeight);
+      
+      if (state.currentSet >= currentEx.totalSets) {
+        if (state.currentExerciseIndex < state.exercises.length - 1) {
+          if (!mounted) return;
+          state = state.copyWith(
+            loggedSets: newLoggedSets,
+            totalVolumeLifted: newVolume,
+            currentExerciseIndex: state.currentExerciseIndex + 1,
+            currentSet: 1,
+            currentReps: state.exercises[state.currentExerciseIndex + 1].targetReps,
+            isResting: false,
+            isLoggingSet: false,
+          );
+        } else {
+          try {
+            await _repository.updateStreak();
+          } catch (e) {
+            // Non-fatal error
+          }
+          if (!mounted) return;
+          state = state.copyWith(
+            loggedSets: newLoggedSets,
+            totalVolumeLifted: newVolume,
+            isLoggingSet: false,
+            isWorkoutComplete: true,
+          );
+        }
+      } else {
+        if (!mounted) return;
+        state = state.copyWith(
+          loggedSets: newLoggedSets,
+          totalVolumeLifted: newVolume,
+          isResting: true,
+          restSecondsRemaining: currentEx.restSeconds,
+          isLoggingSet: false,
+        );
+        _startRestTimer();
+      }
+    } catch (e) {
+      if (mounted) {
+        state = state.copyWith(isLoggingSet: false);
+      }
     }
   }
 
@@ -177,7 +202,7 @@ class ActiveWorkoutViewModel extends StateNotifier<ActiveWorkoutState> {
     if (state.currentExerciseIndex > 0) {
       final prevIndex = state.currentExerciseIndex - 1;
       _restTimer?.cancel();
-      // Determine what set to show (the earliest unlogged one or the max one)
+      
       int newSetNum = 1;
       final prevEx = state.exercises[prevIndex];
       for (int i = 1; i <= prevEx.totalSets; i++) {
@@ -185,7 +210,7 @@ class ActiveWorkoutViewModel extends StateNotifier<ActiveWorkoutState> {
           newSetNum = i;
           break;
         }
-        newSetNum = prevEx.totalSets; // If all logged, point to last
+        newSetNum = prevEx.totalSets;
       }
 
       state = state.copyWith(
@@ -229,5 +254,20 @@ class ActiveWorkoutViewModel extends StateNotifier<ActiveWorkoutState> {
 }
 
 final activeWorkoutProvider = StateNotifierProvider<ActiveWorkoutViewModel, ActiveWorkoutState>((ref) {
-  return ActiveWorkoutViewModel();
+  final repository = ref.watch(clientRepositoryProvider);
+  final homeState = ref.watch(homeViewModelProvider);
+  
+  final exercises = homeState.activeProgram?.exercises.map((e) => WorkoutExercise(
+    name: e.name,
+    totalSets: e.sets,
+    targetReps: e.reps,
+    restSeconds: e.restSeconds ?? 60,
+  )).toList() ?? [];
+
+  final initialState = ActiveWorkoutState(
+    assignmentId: homeState.activeAssignment?['id'],
+    exercises: exercises,
+  );
+
+  return ActiveWorkoutViewModel(repository, initialState);
 });

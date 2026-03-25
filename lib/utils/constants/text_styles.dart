@@ -68,6 +68,22 @@ class AppTextStyles {
     fontWeight: _bold,
     color: AppColors.white,
   );
+  static const TextStyle font18SemiBold = TextStyle(
+    fontSize: 18,
+    fontWeight: _semiBold,
+    color: AppColors.white,
+  );
+  static const TextStyle font13SemiBold = TextStyle(
+    fontSize: 13,
+    fontWeight: _semiBold,
+    color: AppColors.white,
+  );
+  static const TextStyle font12SemiBold = TextStyle(
+    fontSize: 12,
+    fontWeight: _semiBold,
+    color: AppColors.white,
+  );
+
 
   // Semi Bold
   static const TextStyle font16SemiBold = TextStyle(
@@ -103,6 +119,17 @@ class AppTextStyles {
     color: AppColors.muted,
     textBaseline: TextBaseline.alphabetic,
   );
+  static const TextStyle font12Medium = TextStyle(
+    fontSize: 12,
+    fontWeight: _medium,
+    color: AppColors.white,
+  );
+  static const TextStyle font10Medium = TextStyle(
+    fontSize: 10,
+    fontWeight: _medium,
+    color: AppColors.white,
+  );
+
 
   // Regular
   static const TextStyle font15Regular = TextStyle(
@@ -150,6 +177,22 @@ class AppTextStyles {
     fontWeight: _regular,
     color: AppColors.red,
   );
+  static const TextStyle font12RegularDim = TextStyle(
+    fontSize: 12,
+    fontWeight: _regular,
+    color: AppColors.dim,
+  );
+  static const TextStyle font14RegularDim = TextStyle(
+    fontSize: 14,
+    fontWeight: _regular,
+    color: AppColors.dim,
+  );
+  static const TextStyle font10RegularMuted = TextStyle(
+    fontSize: 10,
+    fontWeight: _regular,
+    color: AppColors.muted,
+  );
+
   static const TextStyle font32Regular = TextStyle(
     fontSize: GritSizes.fontSize32,
     fontWeight: _regular,

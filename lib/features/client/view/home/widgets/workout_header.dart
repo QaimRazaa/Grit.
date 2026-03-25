@@ -4,7 +4,8 @@ import 'package:grit/utils/constants/texts.dart';
 import 'package:grit/utils/constants/text_styles.dart';
 
 class WorkoutHeader extends StatelessWidget {
-  const WorkoutHeader({super.key});
+  final String workoutName;
+  const WorkoutHeader({super.key, required this.workoutName});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,7 @@ class WorkoutHeader extends StatelessWidget {
           ),
         ),
         Text(
-          AppTexts.homeWorkoutName,
+          workoutName,
           style: AppTextStyles.font16SemiBold,
         ),
       ],

@@ -13,9 +13,16 @@ import 'package:grit/features/client/view/goal/waiting_screen.dart';
 import 'package:grit/features/client/view/home/home_screen.dart';
 import 'package:grit/features/client/view/workout/active_workout_screen.dart';
 import 'package:grit/features/client/view/workout/workout_complete_screen.dart';
+import 'package:grit/features/trainer/view/home/trainer_home_screen.dart';
+import 'package:grit/features/trainer/view/programs/programs_list_screen.dart';
+import 'package:grit/features/trainer/view/programs/program_builder_screen.dart';
+import 'package:grit/features/trainer/view/home/client_profile_screen.dart';
+import 'package:grit/features/trainer/view/logs/trainer_logs_screen.dart';
+import 'package:grit/features/trainer/view/assign/assign_program_screen.dart';
+
 
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.clientHome,
+  initialLocation: AppRoutes.splash,
   routes: [
     GoRoute(
       path: AppRoutes.splash,
@@ -66,14 +73,42 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>? ?? {};
         return WorkoutCompleteScreen(
-          streakDays: extra['streakDays'] as int? ?? 14,
+          streakDays: extra['streakDays'] as int? ?? 1,
           exercisesDone: extra['exercisesDone'] as int? ?? 0,
           totalSets: extra['totalSets'] as int? ?? 0,
           totalVolume: extra['totalVolume'] as double? ?? 0.0,
         );
       },
     ),
+    GoRoute(
+      path: AppRoutes.trainerDashboard,
+      builder: (context, state) => const TrainerHomeScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.trainerPrograms,
+      builder: (context, state) => const ProgramsListScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.programBuilder,
+      builder: (context, state) => const ProgramBuilderScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.assignProgram,
+      builder: (context, state) => const AssignProgramScreen(),
+    ),
+    GoRoute(
+      path: '${AppRoutes.clientProfile}/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return ClientProfileScreen(clientId: id);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.trainerLogs,
+      builder: (context, state) => const TrainerLogsScreen(),
+    ),
   ],
 );
+
 
 final appRouterProvider = Provider<GoRouter>((ref) => appRouter);

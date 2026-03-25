@@ -212,7 +212,7 @@ class _DoubleRingPulseState extends State<DoubleRingPulse> with SingleTickerProv
               height: AppSizes.width(20) + (AppSizes.width(16) * _controller.value),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.amber.withOpacity((1.0 - _controller.value) * 0.5),
+                color: AppColors.amber.withValues(alpha: (1.0 - _controller.value) * 0.5),
               ),
             ),
             Container(

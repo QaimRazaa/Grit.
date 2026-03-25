@@ -26,10 +26,10 @@ class AmberChip extends StatelessWidget {
             vertical: AppSizes.height(6),
           ),
       decoration: BoxDecoration(
-        color: AppColors.amber.withOpacity(0.12),
+        color: AppColors.amber.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppSizes.radius(20)),
         border: Border.all(
-          color: AppColors.amber.withOpacity(0.3),
+          color: AppColors.amber.withValues(alpha: 0.3),
           width: 1,
         ),
       ),

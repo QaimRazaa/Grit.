@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:grit/core/constants/app_constants.dart';
+import 'package:grit/features/authentication/data/repository/auth_repository.dart';
 import 'package:grit/utils/exceptions/app_exceptions.dart';
 import 'package:grit/utils/validators/app_validators.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignupState {
   final String name;
@@ -55,7 +58,9 @@ class SignupState {
 }
 
 class SignupViewModel extends StateNotifier<SignupState> {
-  SignupViewModel() : super(SignupState());
+  final AuthRepository _authRepository;
+
+  SignupViewModel(this._authRepository) : super(SignupState());
 
   void setName(String value) =>
       state = state.copyWith(name: value, nameError: null, globalError: null);
@@ -98,10 +103,23 @@ class SignupViewModel extends StateNotifier<SignupState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      await _authRepository.signUp(
+        email: state.email,
+        password: state.password,
+        data: {
+          'full_name': state.name,
+          'role': 'client',
+          'trainer_id': AppConstants.trainerUserId,
+        },
+      );
 
       state = state.copyWith(isLoading: false);
       onSuccess();
+    } on AuthException catch (e) {
+      state = state.copyWith(
+        globalError: e.message,
+        isLoading: false,
+      );
     } catch (e, st) {
       debugPrint('$e\n$st');
       state = state.copyWith(
@@ -114,5 +132,6 @@ class SignupViewModel extends StateNotifier<SignupState> {
 
 final signupViewModelProvider =
     StateNotifierProvider.autoDispose<SignupViewModel, SignupState>((ref) {
-      return SignupViewModel();
-    });
+  final authRepository = ref.watch(authRepositoryProvider);
+  return SignupViewModel(authRepository);
+});

@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grit/core/routes/app_routes.dart';
 import 'package:grit/utils/constants/colors.dart';
 import 'package:grit/utils/constants/sizes.dart';
 import 'package:grit/utils/constants/text_styles.dart';
@@ -14,6 +13,7 @@ import 'package:grit/features/authentication/viewmodel/signup/obscure_password_p
 import 'package:grit/shared/widgets/textfield/custom_text_field.dart';
 import 'package:grit/shared/widgets/button/elevated_button.dart';
 import 'package:grit/features/authentication/view/signin/widgets/signin_widgets.dart';
+import 'package:grit/utils/popups/snackbar.dart';
 
 class SigninScreen extends ConsumerStatefulWidget {
   const SigninScreen({super.key});
@@ -44,15 +44,21 @@ class _SigninScreenState extends ConsumerState<SigninScreen> {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState?.validate() ?? false) {
       ref.read(signinViewModelProvider.notifier).submit(
-        onSuccess: () {
-          if (mounted) context.go(AppRoutes.clientHome);
-        },
-      );
+            onSuccess: (route) {
+              if (mounted) context.go(route);
+            },
+          );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(signinViewModelProvider.select((s) => s.globalError), (previous, next) {
+      if (next != null) {
+        AppSnackBar.showError(context, next);
+      }
+    });
+
     final state = ref.watch(signinViewModelProvider);
     final obscurePassword = ref.watch(obscurePasswordProvider('signin'));
 
@@ -149,19 +155,6 @@ class _SigninScreenState extends ConsumerState<SigninScreen> {
                           )
                         : null,
                   ),
-                  if (state.globalError != null)
-                    Padding(
-                      padding: EdgeInsets.only(top: AppSizes.height(GritSizes.gap8)),
-                      child: Center(
-                        child: Text(
-                          state.globalError!,
-                          style: AppTextStyles.font12RegularRed.copyWith(
-                            fontSize: AppSizes.font(GritSizes.fontSize12),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
                   SizedBox(height: AppSizes.height(GritSizes.gap16)),
                   const SigninSignupLink(),
                   SizedBox(height: AppSizes.height(40)),

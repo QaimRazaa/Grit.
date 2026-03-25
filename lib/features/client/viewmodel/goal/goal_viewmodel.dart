@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:grit/features/authentication/data/repository/auth_repository.dart';
 import 'package:grit/utils/constants/enums.dart';
 import 'package:grit/utils/constants/texts.dart';
 
@@ -86,7 +87,9 @@ class GoalState {
 }
 
 class GoalViewModel extends StateNotifier<GoalState> {
-  GoalViewModel() : super(GoalState());
+  final AuthRepository _authRepository;
+
+  GoalViewModel(this._authRepository) : super(GoalState());
 
   // Step 1 Actions
   void setGoal(PrimaryGoal goal) {
@@ -131,17 +134,40 @@ class GoalViewModel extends StateNotifier<GoalState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // Final API call to save all state gathered from steps 1-4
-      // goal, weight, height, age, gender, experience, days_per_week, gym_access, training_time, injuries, source
-      
-      await Future.delayed(const Duration(seconds: 2)); // Simulate latency
-      
+      final userId = _authRepository.currentUser?.id;
+      if (userId == null) throw Exception('User not found');
+
+      await _authRepository.updateUserProfile(
+        userId: userId,
+        data: {'profile_completed': true},
+      );
+
+      await _authRepository.upsertGoalForm(
+        userId: userId,
+        data: {
+          'user_id': userId,
+          'primary_goal': state.selectedGoal?.title,
+          'weight': state.weight,
+          'height': state.height,
+          'age': state.age,
+          'gender': state.gender?.label,
+          'experience_level': state.experienceLevel?.label,
+          'days_per_week': state.daysPerWeek?.label,
+          'gym_access': state.gymAccess?.label,
+          'training_time': state.trainingTime?.label,
+          'injuries': state.injuries,
+          'source': state.source?.label,
+        },
+      );
+
+
+
       state = state.copyWith(isLoading: false);
       await onSuccess();
     } catch (e, st) {
       debugPrint('$e\n$st');
       state = state.copyWith(
-        isLoading: false, 
+        isLoading: false,
         error: AppTexts.errorGoalFormSubmit,
       );
     }
@@ -151,5 +177,6 @@ class GoalViewModel extends StateNotifier<GoalState> {
 // Global provider for all Goal steps - NOT autoDispose, keeps state alive during the entire flow
 final goalViewModelProvider =
     StateNotifierProvider<GoalViewModel, GoalState>((ref) {
-      return GoalViewModel();
-    });
+  final authRepository = ref.watch(authRepositoryProvider);
+  return GoalViewModel(authRepository);
+});

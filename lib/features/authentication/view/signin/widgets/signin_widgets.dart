@@ -7,6 +7,7 @@ import 'package:grit/utils/constants/sizes.dart';
 import 'package:grit/utils/constants/text_styles.dart';
 import 'package:grit/utils/constants/texts.dart';
 import 'package:grit/utils/device/responsive_size.dart';
+import 'package:grit/utils/helpers/ui_helper.dart';
 
 class SigninForgotPasswordLink extends ConsumerWidget {
   const SigninForgotPasswordLink({super.key});
@@ -16,9 +17,7 @@ class SigninForgotPasswordLink extends ConsumerWidget {
     return Align(
       alignment: Alignment.centerRight,
       child: GestureDetector(
-        onTap: () {
-          // TODO: Open Forgot Password bottom sheet
-        },
+        onTap: () => UIHelper.showComingSoon(context, AppTexts.forgotPassword),
         child: Text(
           AppTexts.forgotPassword,
           style: AppTextStyles.font13RegularAmber.copyWith(

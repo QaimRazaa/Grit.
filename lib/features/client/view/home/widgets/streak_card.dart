@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:grit/utils/constants/colors.dart';
 import 'package:grit/utils/constants/texts.dart';
 import 'package:grit/utils/constants/text_styles.dart';
@@ -11,15 +12,14 @@ class StreakCard extends StatelessWidget {
 
   const StreakCard({
     super.key,
-    this.streakCount = 14,
-    this.last7DaysLogged = const [true, true, true, true, true, true, false],
-    this.personalBest = 21,
+    this.streakCount = 0,
+    this.last7DaysLogged = const [false, false, false, false, false, false, false],
+    this.personalBest = 0,
   });
 
   @override
   Widget build(BuildContext context) {
-    final List<String> days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-    final List<double> heights = [28, 20, 28, 24, 28, 28, 12];
+    final List<String> fullDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
     return Container(
       clipBehavior: Clip.hardEdge,
@@ -28,48 +28,24 @@ class StreakCard extends StatelessWidget {
         vertical: AppSizes.height(16),
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface, // #141414
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.radius(20)),
         border: Border.all(
-          color: AppColors.borderDefault, // #2A2A2A
+          color: AppColors.borderDefault,
           width: 1.0,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.amber.withOpacity(0.04), // Subtle amber glow
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Stack(
-        clipBehavior: Clip.none, // Allow overflow within the container layout
         children: [
-          // Decorative element
-          Positioned(
-            top: AppSizes.height(-36), // Align exactly based on 16 padding to reach target -20 from border edge
-            right: AppSizes.width(-36),
-            child: Container(
-              width: AppSizes.width(120),
-              height: AppSizes.width(120),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0x0AF59E0B), // 4% opacity amber
-              ),
-            ),
-          ),
-          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Left Section: Streak Number + Bars
+              // Left Section: Streak Number + Bars (lines)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Inline Streak Number and Label
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
@@ -89,50 +65,69 @@ class StreakCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSizes.height(12)),
-                  // 7 Bars Mini Chart
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: List.generate(7, (index) {
-                      final isLogged = index < last7DaysLogged.length ? last7DaysLogged[index] : false;
-                      final double opacity = 0.5 + (0.5 * (index / 6));
-                      final barColor = isLogged 
-                          ? AppColors.amber.withOpacity(opacity)
-                          : AppColors.borderDefault; // #2A2A2A
-                      
-                      return Padding(
-                        padding: EdgeInsets.only(right: index == 6 ? 0 : AppSizes.width(6)),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              width: AppSizes.width(8),
-                              height: AppSizes.height(heights[index]),
-                              decoration: BoxDecoration(
-                                color: barColor,
-                                borderRadius: BorderRadius.circular(AppSizes.radius(3)),
-                              ),
+                  SizedBox(height: AppSizes.height(16)),
+                  
+                  // Mini Lines Chart using fl_chart
+                  SizedBox(
+                    height: AppSizes.height(45),
+                    width: AppSizes.width(160),
+                    child: BarChart(
+                      BarChartData(
+                        alignment: BarChartAlignment.spaceBetween,
+                        maxY: 1.0,
+                        barTouchData: BarTouchData(enabled: false),
+                        titlesData: FlTitlesData(
+                          show: true,
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, meta) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    fullDays[value.toInt()][0], // First letter
+                                    style: AppTextStyles.font10Regular.copyWith(
+                                      color: AppColors.dim,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                            SizedBox(height: AppSizes.height(6)),
-                            Text(
-                              days[index],
-                              style: AppTextStyles.font10Regular.copyWith(
-                                color: AppColors.dim, // #555555
-                                letterSpacing: 10 * 0.05, // 0.05em
-                              ),
-                            ),
-                          ],
+                          ),
+                          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                         ),
-                      );
-                    }),
+                        gridData: const FlGridData(show: false),
+                        borderData: FlBorderData(show: false),
+                        barGroups: List.generate(7, (index) {
+                          final isLogged = index < last7DaysLogged.length ? last7DaysLogged[index] : false;
+                          return BarChartGroupData(
+                            x: index,
+                            barRods: [
+                              BarChartRodData(
+                                toY: isLogged ? 0.8 : 0.2, // "Height" of the line
+                                color: isLogged ? AppColors.amber : AppColors.borderDefault,
+                                width: 4.0, // Thin "line" look
+                                borderRadius: BorderRadius.circular(2),
+                                backDrawRodData: BackgroundBarChartRodData(
+                                  show: true,
+                                  toY: 1.0,
+                                  color: AppColors.surface,
+                                ),
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
                   ),
                 ],
               ),
               
-              // Right Section: Personal Best Mini Card
+              // Right Section: Personal Best
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(
@@ -140,11 +135,10 @@ class StreakCard extends StatelessWidget {
                       vertical: AppSizes.height(8),
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0x22F59E0B), // 13% opacity
+                      color: AppColors.amber.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppSizes.radius(12)),
                       border: Border.all(
-                        color: const Color(0x44F59E0B),
-                        width: AppSizes.width(1),
+                        color: AppColors.amber.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Column(

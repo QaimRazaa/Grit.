@@ -13,6 +13,8 @@ import 'package:grit/features/authentication/viewmodel/signup/signup_viewmodel.d
 import 'package:grit/features/authentication/viewmodel/signup/obscure_password_provider.dart';
 import 'package:grit/shared/widgets/textfield/custom_text_field.dart';
 import 'package:grit/shared/widgets/button/elevated_button.dart';
+import 'package:grit/utils/popups/snackbar.dart';
+import 'package:grit/utils/exceptions/app_exceptions.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -46,11 +48,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   void _handleSubmit() {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState?.validate() ?? false) {
-      ref
-          .read(signupViewModelProvider.notifier)
-          .submit(
+      ref.read(signupViewModelProvider.notifier).submit(
             onSuccess: () {
-              if (mounted) context.go(AppRoutes.goalStep1);
+              if (mounted) {
+                AppSnackBar.showSuccess(
+                  context,
+                  AppException.accountCreated().message,
+                );
+                context.go(AppRoutes.signin);
+              }
             },
           );
     }
@@ -58,6 +64,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(signupViewModelProvider.select((s) => s.globalError), (previous, next) {
+      if (next != null) {
+        AppSnackBar.showError(context, next);
+      }
+    });
+
     final state = ref.watch(signupViewModelProvider);
     final obscurePassword = ref.watch(obscurePasswordProvider('signup'));
 
@@ -181,23 +193,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           )
                         : null,
                   ),
-                  if (state.globalError != null)
-                    Padding(
-                      padding: EdgeInsets.only(top: AppSizes.height(8.0)),
-                      child: Center(
-                        child: Text(
-                          state.globalError!,
-                          style: AppTextStyles.font12RegularRed.copyWith(
-                            fontSize: AppSizes.font(12.0),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
                   SizedBox(height: AppSizes.height(16.0)),
                   Center(
                     child: GestureDetector(
-                      onTap: () => context.go(AppRoutes.goalStep1),
+                      onTap: () => context.go(AppRoutes.signin),
                       child: RichText(
                         text: TextSpan(
                           text: '${AppTexts.loginPromptText} ',

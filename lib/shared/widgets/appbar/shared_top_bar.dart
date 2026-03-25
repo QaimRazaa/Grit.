@@ -8,13 +8,16 @@ class SharedTopBar extends StatelessWidget {
   final String greeting;
   final String firstName;
   final String initials;
+  final VoidCallback? onLogout;
 
   const SharedTopBar({
     super.key,
     this.greeting = AppTexts.homeGreeting,
     this.firstName = 'Ali',
     this.initials = 'AK',
+    this.onLogout,
   });
+
 
   @override
   Widget build(BuildContext context) {
@@ -38,29 +41,44 @@ class SharedTopBar extends StatelessWidget {
             ],
           ),
 
-          // Right side: Avatar
-          Container(
-            width: AppSizes.width(44),
-            height: AppSizes.width(44),
-            decoration: BoxDecoration(
-              color: AppColors.surface2, // #1F1F1F
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.amber,
-                width: AppSizes.width(2),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: AppTextStyles.font15Medium.copyWith(
-                  fontWeight: FontWeight.w700, // Bold
+          // Right side: Avatar & Logout (optional for testing)
+          Row(
+            children: [
+              if (onLogout != null)
+                IconButton(
+                  onPressed: onLogout,
+                  icon: Icon(
+                    Icons.logout_rounded,
+                    color: AppColors.muted,
+                    size: AppSizes.font(20),
+                  ),
+                ),
+              SizedBox(width: AppSizes.width(8)),
+              Container(
+                width: AppSizes.width(44),
+                height: AppSizes.width(44),
+                decoration: BoxDecoration(
+                  color: AppColors.surface2, // #1F1F1F
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.amber,
+                    width: AppSizes.width(2),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    initials,
+                    style: AppTextStyles.font15Medium.copyWith(
+                      fontWeight: FontWeight.w700, // Bold
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 }
+

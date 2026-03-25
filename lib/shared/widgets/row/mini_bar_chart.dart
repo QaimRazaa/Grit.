@@ -1,44 +1,58 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:grit/utils/constants/colors.dart';
 import 'package:grit/utils/device/responsive_size.dart';
 
-/// A mini vertical bar chart row. Used in strength trend, etc.
 class MiniBarChart extends StatelessWidget {
-  final List<double> heights;
-  final int highlightIndex;
-  final Color barColor;
-  final Color highlightColor;
+  final List<double> dataPoints;
+  final double width;
+  final double height;
 
   const MiniBarChart({
     super.key,
-    required this.heights,
-    this.highlightIndex = -1,
-    this.barColor = AppColors.borderFilled,
-    this.highlightColor = AppColors.amber,
+    required this.dataPoints,
+    this.width = 80,
+    this.height = 36,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: heights.asMap().entries.map((entry) {
-        final isHighlighted = highlightIndex == -1
-            ? entry.key == heights.length - 1
-            : entry.key == highlightIndex;
-        return Padding(
-          padding: EdgeInsets.only(
-            left: entry.key == 0 ? 0 : AppSizes.width(4),
-          ),
-          child: Container(
-            width: AppSizes.width(8),
-            height: AppSizes.height(entry.value),
-            decoration: BoxDecoration(
-              color: isHighlighted ? highlightColor : barColor,
-              borderRadius: BorderRadius.circular(AppSizes.radius(3)),
-            ),
-          ),
-        );
-      }).toList(),
+    if (dataPoints.isEmpty) return SizedBox(width: AppSizes.width(width), height: AppSizes.height(height));
+
+    final double maxVal = dataPoints.reduce((a, b) => a > b ? a : b);
+    final double maxY = maxVal == 0 ? 5 : maxVal + 1;
+
+    return SizedBox(
+      width: AppSizes.width(width),
+      height: AppSizes.height(height),
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceEvenly,
+          maxY: maxY,
+          barTouchData: BarTouchData(enabled: false),
+          titlesData: const FlTitlesData(show: false),
+          gridData: const FlGridData(show: false),
+          borderData: FlBorderData(show: false),
+          barGroups: dataPoints.asMap().entries.map((entry) {
+            return BarChartGroupData(
+              x: entry.key,
+              barRods: [
+                BarChartRodData(
+                  toY: entry.value,
+                  color: AppColors.amber,
+                  width: AppSizes.width(4),
+                  borderRadius: BorderRadius.circular(AppSizes.radius(2)),
+                  backDrawRodData: BackgroundBarChartRodData(
+                    show: true,
+                    toY: maxY,
+                    color: AppColors.surface,
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }

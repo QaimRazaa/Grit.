@@ -50,6 +50,7 @@ class AppTexts {
   static const String signupLinkText = 'Create account';
   static const String errorWrongPassword = 'Incorrect password. Try again.';
   static const String errorEmailNotFound = 'No account found with this email.';
+  static const String successAccountCreated = 'Account created successfully! Please sign in.';
 
   // Goal Form - Shared
   static const String buttonContinue = 'Continue';
@@ -139,12 +140,6 @@ class AppTexts {
   static const String sessionProgress = 'SESSION PROGRESS';
   static const String sessionExercisesDone = '2 OF 6 EXERCISES DONE';
 
-  // Dashboard — Today's Habits
-  static const String todaysHabits = "TODAY'S HABITS";
-  static const String habitGlasses = 'GLASSES';
-  static const String habitSleep = 'SLEEP';
-  static const String habitKcal = 'KCAL';
-
   // Dashboard — Your Progress
   static const String yourProgress = 'YOUR PROGRESS';
   static const String viewAll = 'VIEW ALL →';
@@ -181,6 +176,45 @@ class AppTexts {
   static const String workoutEndSubtitle = 'Your progress so far will be saved.';
   static const String workoutKeepGoing = 'Keep going';
   static const String workoutEndButton = 'End workout';
+
+  // Trainer Dashboard
+  static const String trainerGreeting = 'Good morning,';
+  static const String trainerActiveClients = 'Active Clients';
+  static const String trainerSessionsToday = 'Sessions Today';
+  static const String trainerNeedAttention = 'Need Attention';
+  static const String trainerTodaysSessions = "TODAY'S SESSIONS";
+  static const String trainerProgressAlerts = 'PROGRESS ALERTS';
+  static const String trainerMyClients = 'MY CLIENTS';
+  static const String trainerQuickActions = 'QUICK ACTIONS';
+  static const String trainerAddClient = 'Add Client';
+  static const String trainerAssignWorkout = 'Assign Workout';
+  static const String trainerViewLogs = 'View Logs';
+  static const String trainerMessageClient = 'Message Client';
+  static const String trainerReview = 'Review';
+  static const String trainerNavClients = 'Clients';
+  static const String trainerNavPrograms = 'Programs';
+
+  // Trainer Programs
+  static const String trainerProgramsTitle = 'Programs';
+  static const String trainerNewProgram = 'New Program';
+  static const String trainerTemplates = 'Templates';
+  static const String trainerClientPrograms = 'Client Programs';
+  static const String trainerYourTemplates = 'YOUR TEMPLATES';
+  static const String trainerCreateTemplate = 'Create Template';
+  static const String trainerAssignedPrograms = 'ASSIGNED PROGRAMS';
+  static const String trainerProgramName = 'PROGRAM NAME';
+  static const String trainerDescription = 'DESCRIPTION';
+  static const String trainerType = 'TYPE';
+  static const String trainerAssignToClient = 'ASSIGN TO CLIENT';
+  static const String trainerWorkoutDays = 'WORKOUT DAYS';
+  static const String trainerGoalSummary = 'GOAL SUMMARY';
+  static const String trainerAddExercises = 'Add Exercises';
+  static const String trainerLibrary = 'Library';
+  static const String trainerManualEntry = 'Manual Entry';
+  static const String trainerAssignProgram = 'Assign Program';
+  static const String trainerSelectClient = 'SELECT CLIENT';
+  static const String trainerSelectProgram = 'SELECT PROGRAM';
+  static const String trainerReviewConfirm = 'REVIEW & CONFIRM';
 
   // Private constructor to prevent instantiation
   AppTexts._();

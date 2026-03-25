@@ -51,7 +51,7 @@ class LogSetButton extends StatelessWidget {
                 Text(
                   '${AppTexts.workoutSet} $currentSet ${AppTexts.workoutOf} $totalSets — $exerciseName',
                   style: AppTextStyles.font12Regular.copyWith(
-                    color: AppColors.background.withOpacity(0.6), // 60% opacity
+                    color: AppColors.background.withValues(alpha: 0.6), // 60% opacity
                   ),
                 ),
               ],
