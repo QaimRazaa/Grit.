@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grit/core/routes/app_router.dart';
 import 'package:grit/utils/constants/colors.dart';
 import 'package:grit/utils/device/responsive_size.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -16,7 +17,15 @@ class MyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
         useMaterial3: true,
+        textTheme: GoogleFonts.dmSansTextTheme(
+          Theme.of(context).textTheme,
+        ).apply(
+          bodyColor: AppColors.white,
+          displayColor: AppColors.white,
+        ),
       ),
       routerConfig: router,
       builder: (context, child) {

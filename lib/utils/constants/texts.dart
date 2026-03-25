@@ -103,6 +103,85 @@ class AppTexts {
   static const String buttonSubmitProfile = 'Submit my profile';
   static const String errorGoalFormSubmit = 'Something went wrong. Try again.';
 
+  // Client Home Screen
+  static const String homeGreeting = 'Good morning,';
+  static const String homeTodayLabel = 'TODAY — DAY 14';
+  static const String homeToday = 'Today';
+  static const String homeDayStreak = 'day streak';
+  static const String buttonStartWorkout = 'Start workout';
+  
+  static const String homeWorkoutName = 'Push Day A';
+  static const String homeWorkoutExercises = '4 exercises';
+  static const String homeWorkoutEstimatedTime = '~45 min estimated';
+  static const String homePersonalBestLabel = 'BEST';
+  static const String homePersonalBestSuffix = 'days';
+  static const String homeKeepGoing = 'Keep going!';
+
+  // Bottom Navigation
+  static const String navHome = 'Home';
+  static const String navProgress = 'Progress';
+  static const String navChat = 'Chat';
+
+  // Edge Cases
+  static const String homeProgramCompleteLabel = 'PROGRAM COMPLETE';
+  static const String homeProgramCompleteMessage = 'You have completed your program.';
+  static const String homeMessageQaim = 'Message Qaim';
+  static const String buttonContinueWorkout = 'Continue workout';
+  static const String buttonWorkoutComplete = 'Workout complete';
+
+  // Dashboard — Hero Progress
+  static const String heroWeeklyGoal = 'WEEKLY\nGOAL';
+  static const String heroKcalBurned = 'KCAL BURNED';
+  static const String heroWorkouts = 'WORKOUTS';
+  static const String heroTotalTime = 'TOTAL TIME';
+
+  // Dashboard — Muscle Chips & Progress
+  static const String sessionProgress = 'SESSION PROGRESS';
+  static const String sessionExercisesDone = '2 OF 6 EXERCISES DONE';
+
+  // Dashboard — Today's Habits
+  static const String todaysHabits = "TODAY'S HABITS";
+  static const String habitGlasses = 'GLASSES';
+  static const String habitSleep = 'SLEEP';
+  static const String habitKcal = 'KCAL';
+
+  // Dashboard — Your Progress
+  static const String yourProgress = 'YOUR PROGRESS';
+  static const String viewAll = 'VIEW ALL →';
+  static const String strengthTrend = 'STRENGTH TREND';
+  static const String bodyWeight = 'BODY WEIGHT';
+  static const String bodyFat = 'BODY FAT';
+
+  // Dashboard — Coach Insight
+  static const String coachInsightLabel = 'COACH INSIGHT';
+  static const String coachInsightMessage =
+      "You've hit chest 3x this week. Your volume is "
+      "peaking — consider adding a mobility day tomorrow "
+      "to prevent shoulder fatigue.";
+  static const String coachInsightDismiss = 'Got it';
+
+  // Dashboard — Next Up
+  static const String nextUp = 'NEXT UP';
+  static const String tomorrow = 'TOMORROW';
+  static const String nextWorkoutName = 'Pull Day B – Back & Biceps';
+
+  // Active Workout Screen
+  static const String workoutTitle = 'Workout';
+  static const String workoutExerciseOf = 'Exercise';
+  static const String workoutOf = 'of';
+  static const String workoutSet = 'Set';
+  static const String workoutRepsDone = 'REPS DONE';
+  static const String workoutWeightKg = 'WEIGHT (KG)';
+  static const String workoutBodyweight = 'BW';
+  static const String workoutLogSet = 'Log set';
+  static const String workoutRest = 'REST';
+  static const String workoutSeconds = 'seconds';
+  static const String workoutSkipRest = 'Skip rest';
+  static const String workoutEndTitle = 'End workout?';
+  static const String workoutEndSubtitle = 'Your progress so far will be saved.';
+  static const String workoutKeepGoing = 'Keep going';
+  static const String workoutEndButton = 'End workout';
+
   // Private constructor to prevent instantiation
   AppTexts._();
 }

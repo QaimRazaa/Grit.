@@ -10,9 +10,12 @@ import 'package:grit/features/client/view/goal/goal_step2_screen.dart';
 import 'package:grit/features/client/view/goal/goal_step3_screen.dart';
 import 'package:grit/features/client/view/goal/goal_step4_screen.dart';
 import 'package:grit/features/client/view/goal/waiting_screen.dart';
+import 'package:grit/features/client/view/home/home_screen.dart';
+import 'package:grit/features/client/view/workout/active_workout_screen.dart';
+import 'package:grit/features/client/view/workout/workout_complete_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.splash,
+  initialLocation: AppRoutes.clientHome,
   routes: [
     GoRoute(
       path: AppRoutes.splash,
@@ -49,6 +52,26 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.waiting,
       builder: (context, state) => const WaitingScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.clientHome,
+      builder: (context, state) => const ClientHomeScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.activeWorkout,
+      builder: (context, state) => const ActiveWorkoutScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.workoutComplete,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        return WorkoutCompleteScreen(
+          streakDays: extra['streakDays'] as int? ?? 14,
+          exercisesDone: extra['exercisesDone'] as int? ?? 0,
+          totalSets: extra['totalSets'] as int? ?? 0,
+          totalVolume: extra['totalVolume'] as double? ?? 0.0,
+        );
+      },
     ),
   ],
 );

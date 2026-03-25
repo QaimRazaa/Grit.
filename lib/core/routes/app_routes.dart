@@ -11,6 +11,8 @@ class AppRoutes {
   static const String goalStep2 = '/goal-step-2';
   static const String goalStep3 = '/goal-step-3';
   static const String goalStep4 = '/goal-step-4';
+  static const String activeWorkout = '/client/active-workout';
+  static const String workoutComplete = '/workout-complete';
 
   AppRoutes._();
 }
