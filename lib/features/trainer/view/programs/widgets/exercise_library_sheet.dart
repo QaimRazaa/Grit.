@@ -5,37 +5,18 @@ import 'package:grit/utils/constants/colors.dart';
 import 'package:grit/utils/device/responsive_size.dart';
 import 'package:grit/utils/constants/text_styles.dart';
 
-final Map<String, String> fakeExerciseLibrary = {
-  'Bench Press': 'chest',
-  'Incline DB Press': 'chest',
-  'Chest Fly': 'chest',
-  'Pull Ups': 'back',
-  'Lat Pulldown': 'back',
-  'Seated Row': 'back',
-  'Deadlift': 'back',
-  'Shoulder Press': 'shoulders',
-  'Lateral Raise': 'shoulders',
-  'Face Pulls': 'shoulders',
-  'Bicep Curls': 'arms',
-  'Tricep Extensions': 'arms',
-  'Hammer Curls': 'arms',
-  'Squats': 'legs',
-  'Leg Press': 'legs',
-  'Leg Extensions': 'legs',
-  'Hamstring Curls': 'legs',
-  'Plank': 'core',
-  'Crunches': 'core',
-  'Leg Raises': 'core',
-};
-
 class ExerciseLibrarySheet extends StatefulWidget {
   final List<ExerciseModel> initialAdded;
   final ValueChanged<List<ExerciseModel>> onDone;
+  final List<Map<String, dynamic>> exercises;
+  final List<String>? injuryKeywords;
 
   const ExerciseLibrarySheet({
     super.key,
     required this.initialAdded,
     required this.onDone,
+    required this.exercises,
+    this.injuryKeywords,
   });
 
   @override
@@ -65,17 +46,14 @@ class _ExerciseLibrarySheetState extends State<ExerciseLibrarySheet> {
     super.dispose();
   }
 
-  List<String> get _filteredExercises {
-    return fakeExerciseLibrary.keys.where((name) {
+  List<Map<String, dynamic>> get _filteredExercises {
+    return widget.exercises.where((ex) {
+      final name = ex['name'] as String? ?? '';
       final matchesSearch = name.toLowerCase().contains(_searchQuery.toLowerCase());
-      final category = fakeExerciseLibrary[name]!;
+      final category = ex['muscle_group'] as String? ?? 'other';
       final matchesCategory = _selectedCategory == 'all' || category == _selectedCategory;
       return matchesSearch && matchesCategory;
     }).toList();
-  }
-
-  String _getCategoryForExercise(String name) {
-    return fakeExerciseLibrary[name] ?? 'other';
   }
 
   @override
@@ -218,22 +196,51 @@ class _ExerciseLibrarySheetState extends State<ExerciseLibrarySheet> {
             padding: EdgeInsets.symmetric(horizontal: AppSizes.width(20)),
             itemCount: _filteredExercises.length,
             itemBuilder: (context, index) {
-              final exerciseName = _filteredExercises[index];
-              final category = _getCategoryForExercise(exerciseName);
+              final exercise = _filteredExercises[index];
+              final exerciseName = exercise['name'] as String? ?? 'Unknown';
+              final category = exercise['muscle_group'] as String? ?? 'other';
               final bool isAdded = _addedExercises.any((e) => e.name == exerciseName);
+
+              // Injury warning logic
+              bool isInjuryWarning = false;
+              if (widget.injuryKeywords != null && widget.injuryKeywords!.isNotEmpty) {
+                const injuryMapping = {
+                  'knee': 'legs',
+                  'shoulder': 'shoulders',
+                  'back': 'back',
+                  'chest': 'chest',
+                  'elbow': 'arms',
+                  'wrist': 'arms',
+                };
+                
+                for (final keyword in widget.injuryKeywords!) {
+                  final mappedMuscle = injuryMapping[keyword.toLowerCase()];
+                  if (mappedMuscle != null && category.toLowerCase() == mappedMuscle) {
+                    isInjuryWarning = true;
+                    break;
+                  }
+                }
+              }
+
               return ExerciseListItem(
                 name: exerciseName,
                 muscleGroup: category,
                 isAdded: isAdded,
+                isInjuryWarning: isInjuryWarning,
                 onToggle: () {
                   setState(() {
                     if (isAdded) {
                       _addedExercises.removeWhere((e) => e.name == exerciseName);
                     } else {
+                      final int nextDay = _addedExercises.isEmpty 
+                          ? 1 
+                          : _addedExercises.map((e) => e.day).reduce((a, b) => a > b ? a : b) + 1;
+                          
                       _addedExercises.add(ExerciseModel(
                         name: exerciseName,
                         sets: 4,
                         reps: 10,
+                        day: nextDay,
                       ));
                     }
                   });
@@ -269,10 +276,15 @@ class _ExerciseLibrarySheetState extends State<ExerciseLibrarySheet> {
                 setState(() {
                   final int sets = int.tryParse(_manualSetsController.text) ?? 4;
                   final int reps = int.tryParse(_manualRepsController.text) ?? 10;
+                  final int nextDay = _addedExercises.isEmpty 
+                      ? 1 
+                      : _addedExercises.map((e) => e.day).reduce((a, b) => a > b ? a : b) + 1;
+
                   _addedExercises.add(ExerciseModel(
                     name: _manualNameController.text,
                     sets: sets,
                     reps: reps,
+                    day: nextDay,
                   ));
                   _manualNameController.clear();
                   _manualSetsController.clear();

@@ -18,7 +18,7 @@ import 'package:grit/features/trainer/view/programs/programs_list_screen.dart';
 import 'package:grit/features/trainer/view/programs/program_builder_screen.dart';
 import 'package:grit/features/trainer/view/home/client_profile_screen.dart';
 import 'package:grit/features/trainer/view/logs/trainer_logs_screen.dart';
-import 'package:grit/features/trainer/view/assign/assign_program_screen.dart';
+import 'package:grit/features/trainer/view/programs/client_program_detail_screen.dart';
 
 
 final appRouter = GoRouter(
@@ -93,14 +93,17 @@ final appRouter = GoRouter(
       builder: (context, state) => const ProgramBuilderScreen(),
     ),
     GoRoute(
-      path: AppRoutes.assignProgram,
-      builder: (context, state) => const AssignProgramScreen(),
-    ),
-    GoRoute(
       path: '${AppRoutes.clientProfile}/:id',
       builder: (context, state) {
         final id = state.pathParameters['id']!;
         return ClientProfileScreen(clientId: id);
+      },
+    ),
+    GoRoute(
+      path: '${AppRoutes.clientProgramDetail}/:assignmentId',
+      builder: (context, state) {
+        final assignmentId = state.pathParameters['assignmentId']!;
+        return ClientProgramDetailScreen(assignmentId: assignmentId);
       },
     ),
     GoRoute(

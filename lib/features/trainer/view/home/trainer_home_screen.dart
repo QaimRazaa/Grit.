@@ -51,7 +51,7 @@ class TrainerHomeScreen extends ConsumerWidget {
                               'Once you assign a workout to a client, their progress and activity will show up here.',
                           buttonText: 'Assign Workout',
                           onButtonPressed: () =>
-                              context.push(AppRoutes.assignProgram),
+                              context.push(AppRoutes.programBuilder),
                         ),
                         SizedBox(height: AppSizes.height(100)),
                       ] else ...[
@@ -70,7 +70,10 @@ class TrainerHomeScreen extends ConsumerWidget {
                           TrainerAlertsSection(clients: state.skipAlerts),
                         ],
                         SizedBox(height: AppSizes.height(28)),
-                        TrainerClientRoster(clients: state.clientRoster),
+                        TrainerClientRoster(
+                          clients: state.clientRoster,
+                          assignments: state.activeAssignments,
+                        ),
                         SizedBox(height: AppSizes.height(28)),
                         const TrainerQuickActionsGrid(),
                         SizedBox(height: AppSizes.height(40)),

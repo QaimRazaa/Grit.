@@ -8,6 +8,7 @@ class GoalSummaryCard extends StatelessWidget {
   final String goal;
   final String level;
   final int duration;
+  final String? injuries;
 
   const GoalSummaryCard({
     super.key,
@@ -15,6 +16,7 @@ class GoalSummaryCard extends StatelessWidget {
     required this.goal,
     required this.level,
     required this.duration,
+    this.injuries,
   });
 
   @override
@@ -50,12 +52,34 @@ class GoalSummaryCard extends StatelessWidget {
               SizedBox(height: AppSizes.height(8)),
               Row(
                 children: [
-                  Expanded(child: _GoalChip(label: 'Level', value: level)),
-                  SizedBox(width: AppSizes.width(8)),
-                  Expanded(child: _GoalChip(label: 'Duration', value: '${duration} Weeks')),
-
+                   Expanded(child: _GoalChip(label: 'Level', value: level)),
+                   SizedBox(width: AppSizes.width(8)),
+                   Expanded(child: _GoalChip(label: 'Duration', value: '${duration} Weeks')),
                 ],
               ),
+              if (injuries != null && injuries!.isNotEmpty) ...[
+                SizedBox(height: AppSizes.height(12)),
+                Container(
+                  padding: AppSizes.paddingAll(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.red.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(AppSizes.radius(8)),
+                    border: Border.all(color: AppColors.red.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_rounded, color: AppColors.amber, size: 16),
+                      SizedBox(width: AppSizes.width(8)),
+                      Expanded(
+                        child: Text(
+                          injuries!,
+                          style: AppTextStyles.font12Regular.copyWith(color: AppColors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ],

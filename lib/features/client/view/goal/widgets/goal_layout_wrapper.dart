@@ -39,7 +39,7 @@ class GoalLayoutWrapper extends StatelessWidget {
           children: [
             // Top Progress Bar
             AppProgressBar(progress: progress),
-            
+
             // Header Row (Back Arrow & Step Label)
             Padding(
               padding: EdgeInsets.symmetric(
@@ -55,7 +55,9 @@ class GoalLayoutWrapper extends StatelessWidget {
                         }
                       },
                       child: Padding(
-                        padding: EdgeInsets.only(right: AppSizes.width(GritSizes.gap16)),
+                        padding: EdgeInsets.only(
+                          right: AppSizes.width(GritSizes.gap16),
+                        ),
                         child: Icon(
                           Icons.arrow_back,
                           color: AppColors.muted,
@@ -95,8 +97,12 @@ class GoalLayoutWrapper extends StatelessWidget {
               ),
               child: CustomElevatedButton(
                 text: buttonText,
-                textColor: isButtonActive ? AppColors.background : AppColors.dim,
-                backgroundColor: isButtonActive ? AppColors.amber : AppColors.surface2,
+                textColor: isButtonActive
+                    ? AppColors.background
+                    : AppColors.dim,
+                backgroundColor: isButtonActive
+                    ? AppColors.amber
+                    : AppColors.surface2,
                 onPressed: (isButtonActive && !isButtonLoading)
                     ? onButtonPressed
                     : null,
@@ -104,7 +110,7 @@ class GoalLayoutWrapper extends StatelessWidget {
                 height: GritSizes.size52,
                 borderRadius: GritSizes.radius12,
                 fontSize: AppSizes.font(GritSizes.fontSize15),
-                icon: isButtonLoading
+                child: isButtonLoading
                     ? SizedBox(
                         height: AppSizes.height(20.0),
                         width: AppSizes.width(20.0),

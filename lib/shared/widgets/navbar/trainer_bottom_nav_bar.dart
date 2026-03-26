@@ -15,7 +15,8 @@ class TrainerBottomNavBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final int currentIndex = selectedIndex ?? ref.watch(trainerBottomNavIndexProvider);
+    final int currentIndex =
+        selectedIndex ?? ref.watch(trainerBottomNavIndexProvider);
 
     return Container(
       color: AppColors.background,
@@ -28,7 +29,7 @@ class TrainerBottomNavBar extends ConsumerWidget {
           child: GNav(
             backgroundColor: AppColors.background,
             tabBackgroundColor: AppColors.surface2,
-            activeColor: AppColors.white,
+            activeColor: AppColors.amber,
             color: AppColors.muted,
             padding: EdgeInsets.all(AppSizes.width(16)),
             gap: AppSizes.width(8),
@@ -43,16 +44,13 @@ class TrainerBottomNavBar extends ConsumerWidget {
                 final feature = index == 1
                     ? AppTexts.trainerNavClients
                     : index == 3
-                        ? AppTexts.navChat
-                        : AppTexts.onboardingStep1;
+                    ? AppTexts.navChat
+                    : AppTexts.onboardingStep1;
                 UIHelper.showComingSoon(context, feature);
               }
             },
             tabs: const [
-              GButton(
-                icon: Icons.home_rounded,
-                text: AppTexts.navHome,
-              ),
+              GButton(icon: Icons.home_rounded, text: AppTexts.navHome),
               GButton(
                 icon: Icons.people_outline_rounded,
                 text: AppTexts.trainerNavClients,
@@ -61,10 +59,7 @@ class TrainerBottomNavBar extends ConsumerWidget {
                 icon: Icons.fitness_center_rounded,
                 text: AppTexts.trainerNavPrograms,
               ),
-              GButton(
-                icon: Icons.chat_bubble_rounded,
-                text: AppTexts.navChat,
-              ),
+              GButton(icon: Icons.chat_bubble_rounded, text: AppTexts.navChat),
               GButton(
                 icon: Icons.person_outline_rounded,
                 text: AppTexts.onboardingStep1,

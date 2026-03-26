@@ -144,7 +144,7 @@ class _SigninScreenState extends ConsumerState<SigninScreen> {
                     height: GritSizes.size52,
                     borderRadius: GritSizes.radius12,
                     fontSize: AppSizes.font(GritSizes.fontSize15),
-                    icon: state.isLoading
+                    child: state.isLoading
                         ? SizedBox(
                             height: AppSizes.height(20.0),
                             width: AppSizes.width(20.0),

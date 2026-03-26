@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grit/shared/providers/supabase_client_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -98,6 +99,7 @@ class ProgramRepository {
         json['primary_goal'] = goals['primary_goal'];
         json['experience_level'] = goals['experience_level'];
         json['days_per_week'] = goals['days_per_week'];
+        json['injuries'] = goals['injuries'];
       }
 
       return ClientProfileModel.fromJson(json);
@@ -114,6 +116,7 @@ class ProgramRepository {
         .from('program_assignments')
         .select('*')
         .eq('assigned_by', userId)
+        .eq('active', true)
         .order('start_date', ascending: false);
 
     final assignments = response as List;
@@ -258,18 +261,29 @@ class ProgramRepository {
     required DateTime startDate,
     required int durationWeeks,
   }) async {
+    if (durationWeeks <= 0) throw Exception('Duration must be at least 1 week');
+    
     final userId = _currentUserId;
     if (userId == null) throw Exception('User not authenticated');
 
-    // 1. Deactivate any existing active programs for this client
+    // 1. Fetch current active assignment ID (if any) to migrate logs
+    final existingAssignment = await _supabase
+        .from('program_assignments')
+        .select('id')
+        .eq('client_id', clientId)
+        .eq('active', true)
+        .maybeSingle();
+    final String? oldAssignmentId = existingAssignment?['id'];
+
+    // 2. Deactivate any existing active programs for this client
     await _supabase
         .from('program_assignments')
         .update({'active': false})
         .eq('client_id', clientId)
         .eq('active', true);
 
-    // 2. Insert new assignment
-    await _supabase.from('program_assignments').insert({
+    // 3. Insert new assignment and get its new ID
+    final newAssignmentResponse = await _supabase.from('program_assignments').insert({
       'program_id': programId,
       'client_id': clientId,
       'assigned_by': userId,
@@ -278,7 +292,18 @@ class ProgramRepository {
       )[0], // date format YYYY-MM-DD
       'duration_weeks': durationWeeks,
       'active': true,
-    });
+    }).select('id').single();
+
+    final String newAssignmentId = newAssignmentResponse['id'];
+
+    // 4. Migrate workout logs from old assignment to new one if applicable
+    if (oldAssignmentId != null) {
+      await _supabase
+          .from('workout_logs')
+          .update({'assignment_id': newAssignmentId})
+          .eq('client_id', clientId)
+          .eq('assignment_id', oldAssignmentId);
+    }
   }
 
   /// Loads a single client's full profile including goals and active assignments.
@@ -300,6 +325,7 @@ class ProgramRepository {
     final profile = Map<String, dynamic>.from(profileResponse);
     if (goalsResponse != null) {
       profile['goal_forms'] = [goalsResponse];
+      profile['injuries'] = goalsResponse['injuries'];
     } else {
       profile['goal_forms'] = [];
     }
@@ -310,6 +336,21 @@ class ProgramRepository {
         .eq('client_id', clientId)
         .eq('active', true)
         .maybeSingle();
+
+    int completedDays = 0;
+    if (assignmentResponse != null) {
+      final logs = await _supabase
+          .from('workout_logs')
+          .select('date')
+          .eq('client_id', clientId)
+          .eq('assignment_id', assignmentResponse['id']);
+      
+      completedDays = (logs as List)
+          .map((r) => r['date']?.toString() ?? '')
+          .where((d) => d.isNotEmpty)
+          .toSet()
+          .length;
+    }
 
     final streakResponse = await _supabase
         .from('streaks')
@@ -322,8 +363,8 @@ class ProgramRepository {
       'assignment': assignmentResponse != null
           ? {
               ...assignmentResponse,
-              'program_name':
-                  (assignmentResponse['workout_programs'] as Map?)?['name'],
+              'program_name': (assignmentResponse['workout_programs'] as Map?)?['name'],
+              'completed_days': completedDays,
             }
           : null,
       'streak': streakResponse,
@@ -346,13 +387,48 @@ class ProgramRepository {
     return response;
   }
 
+  /// Loads all available exercises from the global library.
+  Future<List<Map<String, dynamic>>> loadExercises() async {
+    final response = await _supabase
+        .from('exercises')
+        .select('name, muscle_group, equipment, level')
+        .order('muscle_group');
+
+    return (response as List).cast<Map<String, dynamic>>();
+  }
+
   /// Deletes a workout program from the database.
   Future<void> deleteProgram(String programId) async {
     await _supabase.from('workout_programs').delete().eq('id', programId);
+  }
+
+  /// Loads all workout logs for a specific client.
+  Future<List<Map<String, dynamic>>> loadClientWorkoutLogs(String clientId) async {
+    final response = await _supabase
+        .from('workout_logs')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('date', ascending: false)
+        .order('created_at', ascending: false);
+
+    return (response as List).cast<Map<String, dynamic>>();
   }
 }
 
 final programRepositoryProvider = Provider<ProgramRepository>((ref) {
   final supabase = ref.watch(supabaseClientProvider);
   return ProgramRepository(supabase);
+});
+
+final exerciseLibraryProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final repo = ref.watch(programRepositoryProvider);
+  try {
+    final exercises = await repo.loadExercises();
+    debugPrint('[ProgramBuilder] loadExercises() returned ${exercises.length} exercises');
+    debugPrint('[ProgramBuilder] first exercise: ${exercises.isNotEmpty ? exercises.first : 'EMPTY'}');
+    return exercises;
+  } catch (e) {
+    debugPrint('[ProgramBuilder] loadExercises() ERROR: $e');
+    rethrow;
+  }
 });

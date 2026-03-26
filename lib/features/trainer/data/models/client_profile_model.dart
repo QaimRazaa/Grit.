@@ -8,6 +8,7 @@ class ClientProfileModel {
   final int? daysPerWeek;
   final StreakModel? streak;
   final List<bool>? last7Days;
+  final String? injuries;
 
   ClientProfileModel({
     required this.id,
@@ -17,6 +18,7 @@ class ClientProfileModel {
     this.daysPerWeek,
     this.streak,
     this.last7Days,
+    this.injuries,
   });
 
 
@@ -40,6 +42,7 @@ class ClientProfileModel {
       last7Days: json['last_7_days'] != null && json['last_7_days'] is List
           ? List<bool>.from(json['last_7_days'] as List)
           : null,
+      injuries: json['injuries']?.toString(),
     );
   }
 
@@ -53,6 +56,7 @@ class ClientProfileModel {
       'days_per_week': daysPerWeek,
       'streak': streak?.toJson(),
       'last_7_days': last7Days,
+      'injuries': injuries,
     };
   }
 }

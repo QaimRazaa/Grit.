@@ -6,6 +6,7 @@ class WorkoutProgramModel {
   final String? description;
   final String level;
   final List<ExerciseModel> exercises;
+  final Map<String, String> dayLabels;
   final DateTime? createdAt;
   final String? createdBy;
 
@@ -15,6 +16,7 @@ class WorkoutProgramModel {
     this.description,
     this.level = 'Beginner',
     required this.exercises,
+    this.dayLabels = const {},
     this.createdAt,
     this.createdBy,
   });
@@ -28,6 +30,7 @@ class WorkoutProgramModel {
       exercises: (json['exercises'] as List<dynamic>)
           .map((e) => ExerciseModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      dayLabels: Map<String, String>.from(json['day_labels'] as Map? ?? {}),
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at'] as String) 
           : null,
@@ -42,6 +45,7 @@ class WorkoutProgramModel {
       'description': description,
       'level': level,
       'exercises': exercises.map((e) => e.toJson()).toList(),
+      'day_labels': dayLabels,
       if (createdBy != null) 'created_by': createdBy,
     };
   }
@@ -52,6 +56,7 @@ class WorkoutProgramModel {
     String? description,
     String? level,
     List<ExerciseModel>? exercises,
+    Map<String, String>? dayLabels,
     DateTime? createdAt,
     String? createdBy,
   }) {
@@ -61,6 +66,7 @@ class WorkoutProgramModel {
       description: description ?? this.description,
       level: level ?? this.level,
       exercises: exercises ?? this.exercises,
+      dayLabels: dayLabels ?? this.dayLabels,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
     );

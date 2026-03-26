@@ -1,13 +1,16 @@
+import 'exercise_model.dart';
+
 class ProgramAssignmentModel {
   final String id;
   final String programId;
   final String clientId;
   final String? clientName;
   final String? programName;
-  final List<String>? exerciseNames;
+  final List<ExerciseModel>? exercises;
   final DateTime startDate;
   final int durationWeeks;
   final bool active;
+  final int? completedDays;
 
   ProgramAssignmentModel({
     required this.id,
@@ -15,13 +18,14 @@ class ProgramAssignmentModel {
     required this.clientId,
     this.clientName,
     this.programName,
-    this.exerciseNames,
+    this.exercises,
     required this.startDate,
     this.durationWeeks = 12,
     this.active = true,
+    this.completedDays,
   });
 
-  int get currentDay => DateTime.now().difference(startDate).inDays + 1;
+  int get currentDay => completedDays ?? (DateTime.now().difference(startDate).inDays + 1);
   int get totalDays => durationWeeks * 7;
   double get progressPercentage => totalDays == 0 ? 0 : (currentDay / totalDays).clamp(0.0, 1.0);
 
@@ -32,10 +36,13 @@ class ProgramAssignmentModel {
       clientId: json['client_id']?.toString() ?? '',
       clientName: json['client_name']?.toString() ?? 'Client',
       programName: json['program_name']?.toString() ?? 'Workout',
-      exerciseNames: (json['exercises'] as List?)?.map((e) => e['name']?.toString() ?? '').toList(),
+      exercises: (json['exercises'] as List?)
+          ?.map((e) => ExerciseModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
       startDate: DateTime.tryParse(json['start_date']?.toString() ?? '') ?? DateTime.now(),
       durationWeeks: int.tryParse(json['duration_weeks']?.toString() ?? '12') ?? 12,
       active: json['active'] == true,
+      completedDays: int.tryParse(json['completed_days']?.toString() ?? ''),
     );
   }
 

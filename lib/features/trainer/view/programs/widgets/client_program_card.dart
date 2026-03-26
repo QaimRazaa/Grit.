@@ -6,6 +6,7 @@ import 'package:grit/core/routes/app_routes.dart';
 import 'package:go_router/go_router.dart';
 
 class ClientProgramCard extends StatelessWidget {
+  final String assignmentId;
   final String clientName;
   final String clientInitials;
   final String programName;
@@ -15,6 +16,7 @@ class ClientProgramCard extends StatelessWidget {
 
   const ClientProgramCard({
     super.key,
+    required this.assignmentId,
     required this.clientName,
     required this.clientInitials,
     required this.programName,
@@ -128,7 +130,7 @@ class ClientProgramCard extends StatelessWidget {
                 style: AppTextStyles.font11RegularDim,
               ),
               GestureDetector(
-                onTap: () => context.push(AppRoutes.programBuilder),
+                onTap: () => context.push('${AppRoutes.clientProgramDetail}/$assignmentId'),
                 child: Text(
                   'View',
                   style: AppTextStyles.font12Regular.copyWith(color: AppColors.amber),

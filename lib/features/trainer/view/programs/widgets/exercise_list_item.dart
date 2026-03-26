@@ -8,6 +8,7 @@ class ExerciseListItem extends StatelessWidget {
   final String muscleGroup;
   final bool isAdded;
   final VoidCallback onToggle;
+  final bool isInjuryWarning;
 
   const ExerciseListItem({
     super.key,
@@ -15,6 +16,7 @@ class ExerciseListItem extends StatelessWidget {
     required this.muscleGroup,
     required this.isAdded,
     required this.onToggle,
+    this.isInjuryWarning = false,
   });
 
   IconData _muscleIcon(String group) {
@@ -71,9 +73,21 @@ class ExerciseListItem extends StatelessWidget {
               children: [
                 Text(name, style: AppTextStyles.font14Regular),
                 SizedBox(height: AppSizes.height(2)),
-                Text(
-                  muscleGroup.toUpperCase(),
-                  style: AppTextStyles.font12RegularMuted.copyWith(letterSpacing: 0.5),
+                Row(
+                  children: [
+                    Text(
+                      muscleGroup.toUpperCase(),
+                      style: AppTextStyles.font12RegularMuted.copyWith(letterSpacing: 0.5),
+                    ),
+                    if (isInjuryWarning) ...[
+                      SizedBox(width: AppSizes.width(6)),
+                      Icon(
+                        Icons.warning_rounded,
+                        color: AppColors.red,
+                        size: AppSizes.font(12),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

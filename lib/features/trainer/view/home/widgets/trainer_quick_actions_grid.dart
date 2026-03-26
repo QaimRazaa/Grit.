@@ -26,7 +26,7 @@ class TrainerQuickActionsGrid extends StatelessWidget {
               label: AppTexts.trainerAssignWorkout,
               icon: Icons.edit_calendar_outlined,
               isPrimary: true,
-              onTap: () => context.push(AppRoutes.assignProgram),
+              onTap: () => context.push(AppRoutes.programBuilder),
             ),
             SizedBox(height: AppSizes.height(10)),
             _ActionTile(

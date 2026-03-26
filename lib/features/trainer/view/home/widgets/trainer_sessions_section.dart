@@ -65,7 +65,9 @@ class TrainerSessionsSection extends ConsumerWidget {
             ),
           );
 
-          final totalExercises = assignment.exerciseNames?.length ?? 0;
+          final currentProgramDay = (assignment.currentDay - 1) % 7 + 1;
+          final todaysExercises = assignment.exercises?.where((e) => e.day == currentProgramDay).toList() ?? [];
+          final totalExercises = todaysExercises.length;
           final completedExercises = uniqueExercises.length;
           
           String progressText = "$completedExercises of $totalExercises exercises";

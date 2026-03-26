@@ -9,11 +9,17 @@ import 'package:grit/core/routes/app_routes.dart';
 
 
 import 'package:grit/features/trainer/data/models/client_profile_model.dart';
+import 'package:grit/features/trainer/data/models/program_assignment_model.dart';
 
 class TrainerClientRoster extends StatelessWidget {
   final List<ClientProfileModel> clients;
+  final List<ProgramAssignmentModel> assignments;
 
-  const TrainerClientRoster({super.key, required this.clients});
+  const TrainerClientRoster({
+    super.key,
+    required this.clients,
+    required this.assignments,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +66,18 @@ class TrainerClientRoster extends StatelessWidget {
                   streak.lastLoggedDate!.month == today.month &&
                   streak.lastLoggedDate!.day == today.day;
 
+              final assignment = assignments.firstWhere(
+                (a) => a.clientId == client.id && a.active,
+                orElse: () => ProgramAssignmentModel(
+                  id: '',
+                  clientId: '',
+                  programId: '',
+                  startDate: today,
+                  durationWeeks: 0,
+                ),
+              );
+              final displayProgram = assignment.programName ?? client.primaryGoal ?? 'No Program';
+
               return Padding(
                 padding: EdgeInsets.only(
                   right: entry.key == clients.length - 1 ? 0 : AppSizes.width(10),
@@ -69,7 +87,7 @@ class TrainerClientRoster extends StatelessWidget {
                   child: _ClientCard(
                     name: client.fullName,
                     initials: client.initials,
-                    program: client.primaryGoal ?? 'No Program',
+                    program: displayProgram,
                     streak: streak?.currentStreak ?? 0,
                     last7Days: client.last7Days ?? List.generate(7, (_) => false),
                     activeToday: isActiveToday,

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/client_profile_model.dart';
 import '../data/models/program_assignment_model.dart';
@@ -64,9 +65,17 @@ class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
   final ProgramRepository _repository;
   final User? _authUser;
 
-  TrainerHomeViewModel(this._repository, this._authUser) : super(TrainerHomeState()) {
+  TrainerHomeViewModel(this._repository, this._authUser)
+    : super(TrainerHomeState()) {
+    debugPrint(
+      '[TrainerHome] ViewModel init — authUser: ${_authUser?.id}, email: ${_authUser?.email}',
+    );
     if (_authUser != null) {
       refresh();
+    } else {
+      debugPrint(
+        '[TrainerHome] ViewModel init — authUser is NULL, refresh skipped',
+      );
     }
   }
 
@@ -75,14 +84,38 @@ class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       if (_authUser == null) {
+        debugPrint('[TrainerHome] refresh() — authUser is null, aborting');
         state = state.copyWith(isLoading: false);
         return;
       }
+
+      debugPrint(
+        '[TrainerHome] refresh() — loading clients for trainer: ${_authUser!.id}',
+      );
       final clients = await _repository.loadClients();
+      debugPrint(
+        '[TrainerHome] loadClients() returned ${clients.length} client(s)',
+      );
+
       final clientIds = clients.map((c) => c.id).toList();
+      debugPrint('[TrainerHome] clientIds: $clientIds');
 
       if (clientIds.isEmpty) {
-        state = state.copyWith(isLoading: false, totalClients: 0);
+        debugPrint(
+          '[TrainerHome] No clients found — loading trainer profile anyway',
+        );
+        // ⚠️ BUG FIX: still load trainer name even when there are no clients
+        final trainerProfile = await _repository.loadTrainerProfile();
+        debugPrint(
+          '[TrainerHome] loadTrainerProfile() raw response: $trainerProfile',
+        );
+        final resolvedName = trainerProfile?['full_name']?.toString() ?? '';
+        debugPrint('[TrainerHome] trainerName resolved to: "$resolvedName"');
+        state = state.copyWith(
+          isLoading: false,
+          totalClients: 0,
+          trainerName: resolvedName,
+        );
         return;
       }
 
@@ -98,18 +131,44 @@ class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
 
       final activeTodayCount = results[0] as int;
       final streaks = results[1] as List<StreakModel>;
-      final activityRows = List<Map<String, dynamic>>.from(results[2] as Iterable);
+      final activityRows = List<Map<String, dynamic>>.from(
+        results[2] as Iterable,
+      );
       final trainerProfile = results[3] as Map<String, dynamic>?;
-      final todaysSessions = List<Map<String, dynamic>>.from(results[4] as Iterable);
+      final todaysSessions = List<Map<String, dynamic>>.from(
+        results[4] as Iterable,
+      );
       final activeAssignments = results[5] as List<ProgramAssignmentModel>;
-      final globalActivity = List<Map<String, dynamic>>.from(results[6] as Iterable);
-
-      final now = DateTime.now();
-      final last7DaysDates = List.generate(7, (i) => 
-        DateTime(now.year, now.month, now.day).subtract(Duration(days: 6 - i))
+      final globalActivity = List<Map<String, dynamic>>.from(
+        results[6] as Iterable,
       );
 
-      // Map streaks and activity back to clients
+      // 🔍 KEY DEBUG: inspect raw profile response
+      debugPrint(
+        '[TrainerHome] loadTrainerProfile() raw response: $trainerProfile',
+      );
+      debugPrint(
+        '[TrainerHome] trainerProfile keys: ${trainerProfile?.keys.toList()}',
+      );
+      debugPrint(
+        '[TrainerHome] trainerProfile[full_name]: ${trainerProfile?['full_name']}',
+      );
+
+      final resolvedName = trainerProfile?['full_name']?.toString() ?? '';
+      debugPrint(
+        '[TrainerHome] trainerName resolved to: "$resolvedName" (empty = will fallback to "Trainer" in UI)',
+      );
+
+      final now = DateTime.now();
+      final last7DaysDates = List.generate(
+        7,
+        (i) => DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(Duration(days: 6 - i)),
+      );
+
       final roster = clients.map((client) {
         final streak = streaks.firstWhere(
           (s) => s.userId == client.id,
@@ -120,7 +179,7 @@ class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
             .where((row) => row['client_id'] == client.id)
             .map((row) => row['date'] as String)
             .toList();
-        
+
         final last7Days = last7DaysDates.map((date) {
           final dateStr = date.toIso8601String().split('T')[0];
           return clientLogs.contains(dateStr);
@@ -137,12 +196,18 @@ class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
         );
       }).toList();
 
-      final skipAlerts = roster.where((c) => c.streak?.isSkipping ?? false).toList();
+      final skipAlerts = roster
+          .where((c) => c.streak?.isSkipping ?? false)
+          .toList();
+
+      debugPrint(
+        '[TrainerHome] Final state — totalClients: ${clients.length}, activeToday: $activeTodayCount, trainerName: "$resolvedName"',
+      );
 
       state = state.copyWith(
         totalClients: clients.length,
         activeToday: activeTodayCount,
-        trainerName: trainerProfile?['full_name'] ?? 'Trainer',
+        trainerName: resolvedName,
         todaysSessions: todaysSessions,
         skipAlerts: skipAlerts,
         clientRoster: roster,
@@ -150,18 +215,21 @@ class TrainerHomeViewModel extends StateNotifier<TrainerHomeState> {
         globalActivity: globalActivity,
         isLoading: false,
       );
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('[TrainerHome] refresh() ERROR: $e');
+      debugPrint('[TrainerHome] StackTrace: $stack');
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
-
 }
 
-
 final trainerHomeProvider =
-    StateNotifierProvider.autoDispose<TrainerHomeViewModel, TrainerHomeState>((ref) {
-  final user = ref.watch(currentUserProvider);
-  final repository = ref.watch(programRepositoryProvider);
-  return TrainerHomeViewModel(repository, user);
-});
+    StateNotifierProvider.autoDispose<TrainerHomeViewModel, TrainerHomeState>((
+      ref,
+    ) {
+      final user = ref.watch(currentUserProvider);
+      final repository = ref.watch(programRepositoryProvider);
+      debugPrint('[TrainerHome] Provider created — user: ${user?.id}');
+      return TrainerHomeViewModel(repository, user);
+    });

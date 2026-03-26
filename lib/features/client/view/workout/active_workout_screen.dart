@@ -103,12 +103,48 @@ class ActiveWorkoutScreen extends ConsumerWidget {
                     SizedBox(height: AppSizes.height(20)),
                     
                     // 5. Input cards
-                    WorkoutInputCard(
-                      label: AppTexts.workoutRepsDone,
-                      displayValue: state.currentReps.toString(),
-                      onMinus: () => ref.read(activeWorkoutProvider.notifier).decrementReps(),
-                      onPlus: () => ref.read(activeWorkoutProvider.notifier).incrementReps(),
-                    ),
+                    if (currentExercise.toFailure)
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: AppSizes.width(24)),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSizes.width(24),
+                          vertical: AppSizes.height(20),
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          border: Border.all(color: AppColors.borderDefault, width: 1.0),
+                          borderRadius: BorderRadius.circular(AppSizes.radius(20)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppTexts.workoutRepsDone,
+                                  style: AppTextStyles.font11RegularDim.copyWith(
+                                    color: AppColors.muted,
+                                    letterSpacing: 11 * 0.1,
+                                  ),
+                                ),
+                                SizedBox(height: AppSizes.height(8)),
+                                Text(
+                                  'FAILURE',
+                                  style: AppTextStyles.font32Regular.copyWith(color: AppColors.amber),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      WorkoutInputCard(
+                        label: AppTexts.workoutRepsDone,
+                        displayValue: state.currentReps.toString(),
+                        onMinus: () => ref.read(activeWorkoutProvider.notifier).decrementReps(),
+                        onPlus: () => ref.read(activeWorkoutProvider.notifier).incrementReps(),
+                      ),
                     SizedBox(height: AppSizes.height(12)),
                     WorkoutInputCard(
                       label: AppTexts.workoutWeightKg,

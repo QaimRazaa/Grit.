@@ -67,7 +67,10 @@ class ClientRepository {
         .eq('client_id', userId)
         .gte('date', sevenDaysAgo);
 
-    return (response as List).map((row) => row['date']?.toString() ?? '').where((d) => d.isNotEmpty).toList();
+    return (response as List)
+        .map((row) => row['date']?.toString() ?? '')
+        .where((d) => d.isNotEmpty)
+        .toList();
   }
 
   /// Fetches detailed logs for the last 7 days for calorie/time/volume calculation.
@@ -227,6 +230,40 @@ class ClientRepository {
         .select('*')
         .eq('user_id', userId) // Matches snake_case in DB
         .maybeSingle();
+  }
+
+  Future<int> fetchCompletedWorkoutDays(String assignmentId) async {
+    final userId = _currentUserId;
+    if (userId == null) return 0;
+
+    final response = await _supabase
+        .from('workout_logs')
+        .select('date')
+        .eq('client_id', userId)
+        .eq('assignment_id', assignmentId);
+
+    final dates = (response as List)
+        .map((row) => row['date']?.toString() ?? '')
+        .where((d) => d.isNotEmpty)
+        .toSet();
+
+    return dates.length;
+  }
+
+  Future<String?> fetchLastLoggedDate(String assignmentId) async {
+    final userId = _currentUserId;
+    if (userId == null) return null;
+
+    final response = await _supabase
+        .from('workout_logs')
+        .select('date')
+        .eq('client_id', userId)
+        .eq('assignment_id', assignmentId)
+        .order('date', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    return response?['date']?.toString();
   }
 }
 

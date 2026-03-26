@@ -8,12 +8,14 @@ class WorkoutExercise {
   final int totalSets;
   final int targetReps;
   final int restSeconds;
+  final bool toFailure;
 
   const WorkoutExercise({
     required this.name,
     required this.totalSets,
     required this.targetReps,
     this.restSeconds = 60,
+    this.toFailure = false,
   });
 }
 
@@ -123,7 +125,7 @@ class ActiveWorkoutViewModel extends StateNotifier<ActiveWorkoutState> {
         assignmentId: state.assignmentId!,
         exerciseName: currentEx.name,
         setNumber: state.currentSet,
-        reps: state.currentReps,
+        reps: currentEx.toFailure ? 0 : state.currentReps,
         weight: state.currentWeight,
       );
 
@@ -262,6 +264,7 @@ final activeWorkoutProvider = StateNotifierProvider<ActiveWorkoutViewModel, Acti
     totalSets: e.sets,
     targetReps: e.reps,
     restSeconds: e.restSeconds ?? 60,
+    toFailure: e.toFailure,
   )).toList() ?? [];
 
   final initialState = ActiveWorkoutState(

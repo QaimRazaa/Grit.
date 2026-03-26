@@ -30,6 +30,8 @@ class HomeState {
   final String todayWorkoutName;
   final List<String> todaysMuscleGroups;
   final bool isRestDay;
+  final bool isWorkoutDoneToday;
+  final int missedDays;
   final bool isLoading;
   final String? error;
 
@@ -55,6 +57,8 @@ class HomeState {
     this.todayWorkoutName = 'Workout',
     this.todaysMuscleGroups = const [],
     this.isRestDay = false,
+    this.isWorkoutDoneToday = false,
+    this.missedDays = 0,
     this.isLoading = false,
     this.error,
   });
@@ -83,6 +87,8 @@ class HomeState {
     String? todayWorkoutName,
     List<String>? todaysMuscleGroups,
     bool? isRestDay,
+    bool? isWorkoutDoneToday,
+    int? missedDays,
     bool? isLoading,
     Object? error = _unset,
   }) {
@@ -108,6 +114,8 @@ class HomeState {
       todayWorkoutName: todayWorkoutName ?? this.todayWorkoutName,
       todaysMuscleGroups: todaysMuscleGroups ?? this.todaysMuscleGroups,
       isRestDay: isRestDay ?? this.isRestDay,
+      isWorkoutDoneToday: isWorkoutDoneToday ?? this.isWorkoutDoneToday,
+      missedDays: missedDays ?? this.missedDays,
       isLoading: isLoading ?? this.isLoading,
       error: error == _unset ? this.error : error as String?,
     );
@@ -149,26 +157,53 @@ class HomeViewModel extends StateNotifier<HomeState> {
 
       WorkoutProgramModel? program;
       int currentDayNumber = 1;
-      if (assignment != null) {
-        final startDateStr = assignment['start_date']?.toString();
+      bool isWorkoutDoneToday = false;
+      int missedDays = 0;
+      String? workoutDayName;
 
-        if (startDateStr != null) {
-          final startDate = DateTime.tryParse(startDateStr);
-          if (startDate != null) {
-            final diff = now.difference(DateTime(startDate.year, startDate.month, startDate.day)).inDays;
-            currentDayNumber = diff + 1;
+      if (assignment != null) {
+        final assignmentId = assignment['id']?.toString();
+        if (assignmentId != null) {
+          final completedDays = await _clientRepository.fetchCompletedWorkoutDays(assignmentId);
+          currentDayNumber = completedDays + 1;
+
+          final lastLoggedDate = await _clientRepository.fetchLastLoggedDate(assignmentId);
+          final today = DateTime.now().toIso8601String().split('T')[0];
+          
+          isWorkoutDoneToday = lastLoggedDate == today;
+          
+          if (lastLoggedDate != null && lastLoggedDate != today) {
+            final lastDate = DateTime.parse(lastLoggedDate);
+            final diff = DateTime.now().difference(DateTime(lastDate.year, lastDate.month, lastDate.day)).inDays;
+            missedDays = (diff - 1).clamp(0, 99);
           }
+        }
+
+        final totalDays = (assignment['duration_weeks'] as int? ?? 12) * 7;
+        if (currentDayNumber > totalDays) {
+          // Program is complete, treat as no program
+          if (mounted) {
+            state = state.copyWith(isLoading: false, activeProgram: null);
+          }
+          return;
         }
 
         if (assignment['workout_programs'] != null) {
           final rawProgram = WorkoutProgramModel.fromJson(assignment['workout_programs']);
           
-          // Filter exercises for current day of week (1-7)
-          final programDay = (currentDayNumber - 1) % 7 + 1;
+          // Filter exercises for current week and day
+          final int daysPerWeek = (assignment['days_per_week'] as int?) ?? 
+              rawProgram.exercises.fold<int>(0, (m, e) => e.day > m ? e.day : m);
+
+          final currentWeek = ((currentDayNumber - 1) / daysPerWeek.clamp(1, 7)).floor() + 1;
+          final currentDay = ((currentDayNumber - 1) % daysPerWeek.clamp(1, 7)) + 1;
 
           final filteredExercises = rawProgram.exercises
-              .where((e) => e.day == programDay)
+              .where((e) => e.week == currentWeek && e.day == currentDay)
               .toList();
+          
+          final dayLabel = rawProgram.dayLabels["day_$currentDay"];
+          workoutDayName = (dayLabel != null && dayLabel.isNotEmpty) ? dayLabel : rawProgram.name;
           
           program = rawProgram.copyWith(exercises: filteredExercises);
         }
@@ -302,13 +337,15 @@ class HomeViewModel extends StateNotifier<HomeState> {
         bodyFat: bodyFatDisplay,
         strengthTrend: trend,
         currentDayNumber: currentDayNumber,
-        todayWorkoutName: program?.name ?? 'Workout',
-        todaysMuscleGroups: (program?.name.toString() ?? '')
+        todayWorkoutName: workoutDayName ?? program?.name ?? 'Workout',
+        todaysMuscleGroups: (workoutDayName ?? program?.name.toString() ?? '')
           .replaceAll(RegExp(r'[^\w\s]'), ' ') // spaces for punctuation
           .split(' ')
           .where((s) => s.length > 3) // basic filter for labels
           .toList(),
         isRestDay: isRestDay,
+        isWorkoutDoneToday: isWorkoutDoneToday,
+        missedDays: missedDays,
         isLoading: false,
       );
     } catch (e, stack) {

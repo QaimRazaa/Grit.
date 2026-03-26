@@ -48,7 +48,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   void _handleSubmit() {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(signupViewModelProvider.notifier).submit(
+      ref
+          .read(signupViewModelProvider.notifier)
+          .submit(
             onSuccess: () {
               if (mounted) {
                 AppSnackBar.showSuccess(
@@ -64,7 +66,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(signupViewModelProvider.select((s) => s.globalError), (previous, next) {
+    ref.listen(signupViewModelProvider.select((s) => s.globalError), (
+      previous,
+      next,
+    ) {
       if (next != null) {
         AppSnackBar.showError(context, next);
       }
@@ -182,7 +187,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     height: GritSizes.size52,
                     borderRadius: GritSizes.radius12,
                     fontSize: AppSizes.font(15.0),
-                    icon: state.isLoading
+                    child: state.isLoading
                         ? SizedBox(
                             height: AppSizes.height(20.0),
                             width: AppSizes.width(20.0),

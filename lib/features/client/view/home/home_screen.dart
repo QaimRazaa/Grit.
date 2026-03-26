@@ -117,58 +117,65 @@ class ClientHomeScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (state.missedDays > 0)
+                            _buildMissedDaysBanner(state.missedDays),
+                          
                           WorkoutHeader(
                             workoutName: state.todayWorkoutName,
                             dayNumber: state.currentDayNumber,
                           ),
                           SizedBox(height: AppSizes.height(12)),
 
-                          // Muscle Chips & Session Progress (NEW)
-                          MuscleChipsAndProgress(
-                            completedCount: completedCount,
-                            totalCount: exercises.length,
-                            calories: state.todaysCalories,
-                            muscleGroups: state.todaysMuscleGroups,
-                          ),
-                          SizedBox(height: AppSizes.height(16)),
+                          if (state.isWorkoutDoneToday)
+                            _buildLockedDayView(state.currentDayNumber)
+                          else ...[
+                            // Muscle Chips & Session Progress
+                            MuscleChipsAndProgress(
+                              completedCount: completedCount,
+                              totalCount: exercises.length,
+                              calories: state.todaysCalories,
+                              muscleGroups: state.todaysMuscleGroups,
+                            ),
+                            SizedBox(height: AppSizes.height(16)),
 
-                           // Exercise Cards
-                          if (exercises.isEmpty)
-                            Container(
-                              padding: EdgeInsets.symmetric(vertical: AppSizes.height(32), horizontal: AppSizes.width(24)),
-                              decoration: BoxDecoration(
-                                color: AppColors.surface,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: AppColors.white.withOpacity(0.05)),
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(Icons.hotel_class_outlined, color: AppColors.amber, size: 48),
-                                  SizedBox(height: AppSizes.height(16)),
-                                  Text('Rest Day', style: AppTextStyles.font20Bold),
-                                  SizedBox(height: AppSizes.height(8)),
-                                  Text(
-                                    'No exercises scheduled for Day ${state.currentDayNumber}. Enjoy your recovery!',
-                                    textAlign: TextAlign.center,
-                                    style: AppTextStyles.font14RegularMuted,
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            ...exercises.map((ex) {
-                              final isDone = state.todaysLoggedExercises.contains(ex.name);
-                              return Padding(
-                                padding: EdgeInsets.only(bottom: AppSizes.height(10)),
-                                child: ExerciseCard(
-                                  name: ex.name,
-                                  details: "${ex.sets} sets x ${ex.reps} reps",
-                                  totalSets: ex.sets,
-                                  completedSets: isDone ? ex.sets : 0,
-                                  state: isDone ? ExerciseCardState.done : ExerciseCardState.notStarted,
+                             // Exercise Cards
+                            if (exercises.isEmpty)
+                              Container(
+                                padding: EdgeInsets.symmetric(vertical: AppSizes.height(32), horizontal: AppSizes.width(24)),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: AppColors.white.withOpacity(0.05)),
                                 ),
-                              );
-                            }),
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.hotel_class_outlined, color: AppColors.amber, size: 48),
+                                    SizedBox(height: AppSizes.height(16)),
+                                    const Text('Rest Day', style: AppTextStyles.font20Bold),
+                                    SizedBox(height: AppSizes.height(8)),
+                                    Text(
+                                      'No exercises scheduled for Day ${state.currentDayNumber}. Enjoy your recovery!',
+                                      textAlign: TextAlign.center,
+                                      style: AppTextStyles.font14RegularMuted,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              ...exercises.map((ex) {
+                                final isDone = state.todaysLoggedExercises.contains(ex.name);
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: AppSizes.height(10)),
+                                  child: ExerciseCard(
+                                    name: ex.name,
+                                    details: ex.toFailure ? "${ex.sets} sets x Failure" : "${ex.sets} sets x ${ex.reps} reps",
+                                    totalSets: ex.sets,
+                                    completedSets: isDone ? ex.sets : 0,
+                                    state: isDone ? ExerciseCardState.done : ExerciseCardState.notStarted,
+                                  ),
+                                );
+                              }),
+                          ],
                         ],
                       ),
 
@@ -191,12 +198,62 @@ class ClientHomeScreen extends ConsumerWidget {
                 ),
               ),
 
-              PinnedWorkoutButton(
-                state: workoutState,
-              ),
+              if (!state.isWorkoutDoneToday)
+                PinnedWorkoutButton(
+                  state: workoutState,
+                ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLockedDayView(int currentDay) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: AppSizes.height(32), horizontal: AppSizes.width(24)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.white.withOpacity(0.05)),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.lock_clock_rounded, color: AppColors.amber, size: 48),
+          SizedBox(height: AppSizes.height(16)),
+          const Text('Session Complete', style: AppTextStyles.font20Bold),
+          SizedBox(height: AppSizes.height(8)),
+          Text(
+            'Keep up the momentum! Day ${currentDay + 1} will unlock tomorrow.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.font14RegularMuted,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMissedDaysBanner(int missedCount) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: AppSizes.height(12), horizontal: AppSizes.width(16)),
+      margin: EdgeInsets.only(bottom: AppSizes.height(16)),
+      decoration: BoxDecoration(
+        color: AppColors.amber.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.amber.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: AppColors.amber, size: 20),
+          SizedBox(width: AppSizes.width(12)),
+          Expanded(
+            child: Text(
+              'You missed $missedCount session(s). Pick up where you left off.',
+              style: AppTextStyles.font12SemiBold.copyWith(color: AppColors.amber),
+            ),
+          ),
+        ],
       ),
     );
   }

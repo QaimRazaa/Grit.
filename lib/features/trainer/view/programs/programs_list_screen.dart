@@ -11,6 +11,7 @@ import 'package:grit/utils/constants/text_styles.dart';
 import 'package:grit/utils/constants/texts.dart';
 import 'package:grit/utils/device/responsive_size.dart';
 import '../../data/models/workout_program_model.dart';
+import '../../data/models/program_assignment_model.dart';
 
 class ProgramsListScreen extends ConsumerStatefulWidget {
   const ProgramsListScreen({super.key});
@@ -251,7 +252,7 @@ class _TemplatesTab extends ConsumerWidget {
 }
 
 class _ClientProgramsTab extends StatelessWidget {
-  final List<dynamic> assignments;
+  final List<ProgramAssignmentModel> assignments;
   const _ClientProgramsTab({required this.assignments});
 
   @override
@@ -277,6 +278,7 @@ class _ClientProgramsTab extends StatelessWidget {
           )
         else
           ...assignments.map((a) => ClientProgramCard(
+                assignmentId: a.id,
                 clientName: a.clientName ?? 'Unknown',
                 clientInitials: a.clientInitials,
                 programName: a.programName ?? 'Unknown',

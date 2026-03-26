@@ -42,10 +42,149 @@ class ClientProfileScreen extends ConsumerWidget {
                       _CurrentProgramSection(assignment: state.activeAssignment),
                       SizedBox(height: AppSizes.height(28)),
                       _GoalInformationSection(goals: state.goals),
+                      SizedBox(height: AppSizes.height(28)),
+                      _Last7DaysSection(activity: state.last7DaysActivity),
+                      SizedBox(height: AppSizes.height(28)),
+                      _WorkoutHistorySection(workoutLogs: state.workoutLogs),
+                      SizedBox(height: AppSizes.height(40)),
                     ],
                   ),
                 ),
     );
+  }
+}
+
+class _Last7DaysSection extends StatelessWidget {
+  final List<bool> activity;
+  const _Last7DaysSection({required this.activity});
+
+  @override
+  Widget build(BuildContext context) {
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Weekly Activity', style: AppTextStyles.font16SemiBold),
+        SizedBox(height: AppSizes.height(14)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(7, (i) {
+            final active = activity[i];
+            return Column(
+              children: [
+                Text(days[i], style: AppTextStyles.font11RegularDim),
+                SizedBox(height: AppSizes.height(8)),
+                Container(
+                  width: AppSizes.width(36),
+                  height: AppSizes.width(36),
+                  decoration: BoxDecoration(
+                    color: active ? AppColors.amber : AppColors.surface,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: active ? AppColors.amber : AppColors.borderDefault,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: active 
+                      ? const Icon(Icons.check, color: AppColors.background, size: 20)
+                      : null,
+                ),
+              ],
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+class _WorkoutHistorySection extends StatelessWidget {
+  final List<Map<String, dynamic>> workoutLogs;
+  const _WorkoutHistorySection({required this.workoutLogs});
+
+  @override
+  Widget build(BuildContext context) {
+    if (workoutLogs.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Workout History', style: AppTextStyles.font16SemiBold),
+          SizedBox(height: AppSizes.height(14)),
+          const Text('No workout history yet.', style: AppTextStyles.font14RegularDim),
+        ],
+      );
+    }
+
+    final Map<String, List<Map<String, dynamic>>> groupedLogs = {};
+    for (var log in workoutLogs) {
+      final date = log['date']?.toString() ?? 'Unknown Date';
+      groupedLogs.putIfAbsent(date, () => []).add(log);
+    }
+
+    final sortedDates = groupedLogs.keys.toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Workout History', style: AppTextStyles.font16SemiBold),
+        SizedBox(height: AppSizes.height(14)),
+        ...sortedDates.map((date) {
+          final logs = groupedLogs[date]!;
+          return Container(
+            margin: EdgeInsets.only(bottom: AppSizes.height(16)),
+            padding: EdgeInsets.all(AppSizes.width(16)),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppSizes.radius(16)),
+              border: Border.all(color: AppColors.borderDefault),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(_formatDateString(date), style: AppTextStyles.font13SemiBold.copyWith(color: AppColors.amber)),
+                    Text('${logs.length} sets', style: AppTextStyles.font11RegularDim),
+                  ],
+                ),
+                SizedBox(height: AppSizes.height(12)),
+                ...logs.map((log) => Padding(
+                  padding: EdgeInsets.only(bottom: AppSizes.height(8)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          log['exercise_name']?.toString() ?? 'Exercise',
+                          style: AppTextStyles.font13Regular,
+                        ),
+                      ),
+                      Text(
+                        log['reps'] == 0 
+                            ? 'Failure x ${log['weight']} kg' 
+                            : '${log['reps']} reps x ${log['weight']} kg',
+                        style: AppTextStyles.font12Medium,
+                      ),
+                    ],
+                  ),
+                )),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  String _formatDateString(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${date.day} ${months[date.month - 1]} ${date.year}';
+    } catch (e) {
+      return dateStr;
+    }
   }
 }
 

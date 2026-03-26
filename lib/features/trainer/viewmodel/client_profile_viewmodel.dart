@@ -9,6 +9,8 @@ class ClientProfileState {
   final ClientProfileModel? client;
   final GoalFormModel? goals;
   final ProgramAssignmentModel? activeAssignment;
+  final List<Map<String, dynamic>> workoutLogs;
+  final List<bool> last7DaysActivity;
   final bool isLoading;
   final String? error;
 
@@ -16,23 +18,31 @@ class ClientProfileState {
     this.client,
     this.goals,
     this.activeAssignment,
+    this.workoutLogs = const [],
+    this.last7DaysActivity = const [false, false, false, false, false, false, false],
     this.isLoading = false,
     this.error,
   });
 
+  static const _unset = Object();
+
   ClientProfileState copyWith({
     ClientProfileModel? client,
     GoalFormModel? goals,
-    ProgramAssignmentModel? activeAssignment,
+    Object? activeAssignment = _unset,
+    List<Map<String, dynamic>>? workoutLogs,
+    List<bool>? last7DaysActivity,
     bool? isLoading,
-    String? error,
+    Object? error = _unset,
   }) {
     return ClientProfileState(
       client: client ?? this.client,
       goals: goals ?? this.goals,
-      activeAssignment: activeAssignment ?? this.activeAssignment,
+      activeAssignment: activeAssignment == _unset ? this.activeAssignment : activeAssignment as ProgramAssignmentModel?,
+      workoutLogs: workoutLogs ?? this.workoutLogs,
+      last7DaysActivity: last7DaysActivity ?? this.last7DaysActivity,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: error == _unset ? this.error : error as String?,
     );
   }
 }
@@ -48,7 +58,13 @@ class ClientProfileViewModel extends StateNotifier<ClientProfileState> {
   Future<void> load() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final data = await _repository.loadClientFullProfile(_clientId);
+      final results = await Future.wait([
+        _repository.loadClientFullProfile(_clientId),
+        _repository.loadClientWorkoutLogs(_clientId),
+      ]);
+      
+      final data = results[0] as Map<String, dynamic>;
+      final workoutLogs = results[1] as List<Map<String, dynamic>>;
       
       final profileJson = data['profile'] as Map<String, dynamic>;
       final assignmentJson = data['assignment'] as Map<String, dynamic>?;
@@ -58,6 +74,18 @@ class ClientProfileViewModel extends StateNotifier<ClientProfileState> {
           ? profileJson['goal_forms'][0] as Map<String, dynamic> 
           : null;
 
+      // Compute last 7 days activity (Mon-Sun)
+      final now = DateTime.now();
+      final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+      final List<bool> activity = [];
+      final loggedDates = workoutLogs.map((log) => log['date']?.toString() ?? '').toSet();
+      
+      for (int i = 0; i < 7; i++) {
+        final day = monday.add(Duration(days: i));
+        final dayStr = day.toIso8601String().split('T')[0];
+        activity.add(loggedDates.contains(dayStr));
+      }
+
       state = state.copyWith(
         client: ClientProfileModel.fromJson({
           ...profileJson,
@@ -65,6 +93,8 @@ class ClientProfileViewModel extends StateNotifier<ClientProfileState> {
         }),
         goals: goalJson != null ? GoalFormModel.fromJson(goalJson) : null,
         activeAssignment: assignmentJson != null ? ProgramAssignmentModel.fromJson(assignmentJson) : null,
+        workoutLogs: workoutLogs,
+        last7DaysActivity: activity,
         isLoading: false,
       );
     } catch (e) {
@@ -74,7 +104,7 @@ class ClientProfileViewModel extends StateNotifier<ClientProfileState> {
 }
 
 final clientProfileProvider =
-    StateNotifierProvider.family<ClientProfileViewModel, ClientProfileState, String>((ref, clientId) {
+    StateNotifierProvider.family.autoDispose<ClientProfileViewModel, ClientProfileState, String>((ref, clientId) {
   final repository = ref.watch(programRepositoryProvider);
   return ClientProfileViewModel(repository, clientId);
 });

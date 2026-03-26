@@ -15,8 +15,8 @@ class AppRoutes {
   static const String workoutComplete = '/workout-complete';
   static const String trainerPrograms = '/trainer/programs';
   static const String programBuilder = '/trainer/programs/builder';
-  static const String assignProgram = '/trainer/assign';
   static const String clientProfile = '/trainer/client-profile';
+  static const String clientProgramDetail = '/trainer/client-program';
   static const String trainerLogs = '/trainer/logs';
 
   AppRoutes._();

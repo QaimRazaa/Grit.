@@ -25,7 +25,9 @@ class TrainerTopBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(trainerHomeProvider);
-    final trainerName = state.trainerName.isNotEmpty ? state.trainerName : 'Trainer';
+    final trainerName = state.trainerName.isNotEmpty
+        ? state.trainerName
+        : 'Trainer';
 
     return Padding(
       padding: EdgeInsets.only(top: AppSizes.height(16)),
@@ -43,9 +45,7 @@ class TrainerTopBar extends ConsumerWidget {
               SizedBox(height: AppSizes.height(2)),
               Text(
                 trainerName.split(' ')[0], // Just first name
-                style: AppTextStyles.font22Bold.copyWith(
-                  letterSpacing: -0.5,
-                ),
+                style: AppTextStyles.font22Bold.copyWith(letterSpacing: -0.5),
               ),
             ],
           ),
@@ -76,37 +76,36 @@ class TrainerTopBar extends ConsumerWidget {
                   size: AppSizes.font(20),
                 ),
               ),
-              SizedBox(width: AppSizes.width(8)),
+              SizedBox(width: AppSizes.width(5)),
               // Notification bell
-              Stack(
-                children: [
-                  Icon(
-                    Icons.notifications_outlined,
-                    color: AppColors.muted,
-                    size: AppSizes.font(24),
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      width: AppSizes.width(8),
-                      height: AppSizes.width(8),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.red,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(width: AppSizes.width(16)),
+              // Stack(
+              //   children: [
+              //     Icon(
+              //       Icons.notifications_outlined,
+              //       color: AppColors.muted,
+              //       size: AppSizes.font(24),
+              //     ),
+              //     Positioned(
+              //       top: 0,
+              //       right: 0,
+              //       child: Container(
+              //         width: AppSizes.width(8),
+              //         height: AppSizes.width(8),
+              //         decoration: const BoxDecoration(
+              //           shape: BoxShape.circle,
+              //           color: AppColors.red,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // SizedBox(width: AppSizes.width(16)),
               // Avatar
               Container(
-                width: AppSizes.width(44),
-                height: AppSizes.width(44),
+                width: AppSizes.width(35),
+                height: AppSizes.height(35),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.surface2,
                   border: Border.all(
                     color: AppColors.amber,
                     width: AppSizes.width(2),
