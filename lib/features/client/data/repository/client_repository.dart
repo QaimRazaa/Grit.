@@ -15,25 +15,13 @@ class ClientRepository {
     final userId = _currentUserId;
     if (userId == null) return null;
 
-    final assignmentResponse = await _supabase
+    return await _supabase
         .from('program_assignments')
-        .select('*')
+        .select('*, workout_programs(*)')
         .eq('client_id', userId)
         .eq('active', true)
         .limit(1)
         .maybeSingle();
-
-    if (assignmentResponse == null) return null;
-
-    final programResponse = await _supabase
-        .from('workout_programs')
-        .select('*')
-        .eq('id', assignmentResponse['program_id'])
-        .maybeSingle();
-
-    final result = Map<String, dynamic>.from(assignmentResponse);
-    result['workout_programs'] = programResponse;
-    return result;
   }
 
   /// Fetches the client's current streak.

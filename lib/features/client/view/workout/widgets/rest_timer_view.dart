@@ -28,10 +28,10 @@ class RestTimerView extends StatelessWidget {
             letterSpacing: 14 * 0.1, // 0.1em
           ),
         ),
-        SizedBox(height: AppSizes.height(32)),
+        SizedBox(height: AppSizes.height(24)),
         SizedBox(
-          width: AppSizes.width(180),
-          height: AppSizes.width(180),
+          width: AppSizes.width(120),
+          height: AppSizes.width(120),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -41,7 +41,9 @@ class RestTimerView extends StatelessWidget {
                 color: AppColors.surface2, // #1F1F1F
               ),
               CircularProgressIndicator(
-                value: totalRestSeconds == 0 ? 0 : secondsRemaining / totalRestSeconds,
+                value: totalRestSeconds == 0
+                    ? 0
+                    : secondsRemaining / totalRestSeconds,
                 strokeWidth: AppSizes.width(8),
                 strokeCap: StrokeCap.round,
                 color: AppColors.amber, // #F59E0B
@@ -68,7 +70,7 @@ class RestTimerView extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(height: AppSizes.height(40)),
+        SizedBox(height: AppSizes.height(24)),
         GestureDetector(
           onTap: onSkip,
           child: Text(

@@ -145,15 +145,25 @@ class HomeViewModel extends StateNotifier<HomeState> {
         return;
       }
       
-      final profile = await _authRepository.getUserProfile(user.id);
-      final assignment = await _clientRepository.fetchActiveAssignment();
-      
-      final streak = await _clientRepository.fetchStreak();
-      final activity = await _clientRepository.fetchLast7DaysActivity();
-      final todaysLogs = await _clientRepository.fetchTodaysLoggedExercises();
-      final goalForm = await _clientRepository.fetchGoalForm();
-      final weeklyLogs = await _clientRepository.fetchWeeklyLogs();
-      final prevWeeklyLogs = await _clientRepository.fetchPreviousWeeklyLogs();
+      final results = await Future.wait([
+        _authRepository.getUserProfile(user.id),
+        _clientRepository.fetchActiveAssignment(),
+        _clientRepository.fetchStreak(),
+        _clientRepository.fetchLast7DaysActivity(),
+        _clientRepository.fetchTodaysLoggedExercises(),
+        _clientRepository.fetchGoalForm(),
+        _clientRepository.fetchWeeklyLogs(),
+        _clientRepository.fetchPreviousWeeklyLogs(),
+      ]);
+
+      final profile        = results[0] as Map<String, dynamic>?;
+      final assignment     = results[1] as Map<String, dynamic>?;
+      final streak         = results[2] as StreakModel?;
+      final activity       = results[3] as List<String>;
+      final todaysLogs     = results[4] as Set<String>;
+      final goalForm       = results[5] as Map<String, dynamic>?;
+      final weeklyLogs     = results[6] as List<Map<String, dynamic>>;
+      final prevWeeklyLogs = results[7] as List<Map<String, dynamic>>;
 
       WorkoutProgramModel? program;
       int currentDayNumber = 1;

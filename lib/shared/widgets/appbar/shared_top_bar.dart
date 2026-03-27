@@ -18,7 +18,6 @@ class SharedTopBar extends StatelessWidget {
     this.onLogout,
   });
 
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -55,8 +54,8 @@ class SharedTopBar extends StatelessWidget {
                 ),
               SizedBox(width: AppSizes.width(8)),
               Container(
-                width: AppSizes.width(44),
-                height: AppSizes.width(44),
+                width: AppSizes.width(34),
+                height: AppSizes.width(34),
                 decoration: BoxDecoration(
                   color: AppColors.surface2, // #1F1F1F
                   shape: BoxShape.circle,
@@ -81,4 +80,3 @@ class SharedTopBar extends StatelessWidget {
     );
   }
 }
-

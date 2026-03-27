@@ -143,6 +143,22 @@ class ProgramRepository {
     };
     final programMap = {for (var p in programs as List) p['id'] as String: p};
 
+    // 3. Fetch completed days for these assignments
+    final assignmentIds = assignments.map((e) => e['id'] as String).toList();
+    final logsResponse = await _supabase
+        .from('workout_logs')
+        .select('assignment_id, date')
+        .filter('assignment_id', 'in', assignmentIds);
+
+    // Count distinct dates per assignment_id
+    final Map<String, Set<String>> logDatesByAssignment = {};
+    for (final log in logsResponse as List) {
+      final aId = log['assignment_id']?.toString() ?? '';
+      final date = log['date']?.toString() ?? '';
+      if (aId.isEmpty || date.isEmpty) continue;
+      logDatesByAssignment.putIfAbsent(aId, () => {}).add(date);
+    }
+
     return assignments.map((e) {
       final map = Map<String, dynamic>.from(e);
       map['client_name'] = profileMap[e['client_id']] ?? 'Unknown Client';
@@ -152,6 +168,8 @@ class ProgramRepository {
         map['program_name'] = programData['name'];
         map['exercises'] = programData['exercises'];
       }
+      
+      map['completed_days'] = logDatesByAssignment[e['id']]?.length ?? 0;
 
       return ProgramAssignmentModel.fromJson(map);
     }).toList();
@@ -188,10 +206,13 @@ class ProgramRepository {
   }) async {
     if (clientIds.isEmpty) return [];
 
+    final today = DateTime.now().toIso8601String().split('T')[0];
+
     final response = await _supabase
         .from('workout_logs')
         .select('*, profiles(full_name)')
         .filter('client_id', 'in', clientIds)
+        .eq('date', today)
         .order('created_at', ascending: false)
         .limit(limit);
 
@@ -266,24 +287,15 @@ class ProgramRepository {
     final userId = _currentUserId;
     if (userId == null) throw Exception('User not authenticated');
 
-    // 1. Fetch current active assignment ID (if any) to migrate logs
-    final existingAssignment = await _supabase
-        .from('program_assignments')
-        .select('id')
-        .eq('client_id', clientId)
-        .eq('active', true)
-        .maybeSingle();
-    final String? oldAssignmentId = existingAssignment?['id'];
-
-    // 2. Deactivate any existing active programs for this client
+    // 1. Deactivate any existing active programs for this client
     await _supabase
         .from('program_assignments')
         .update({'active': false})
         .eq('client_id', clientId)
         .eq('active', true);
 
-    // 3. Insert new assignment and get its new ID
-    final newAssignmentResponse = await _supabase.from('program_assignments').insert({
+    // 2. Insert new assignment
+    await _supabase.from('program_assignments').insert({
       'program_id': programId,
       'client_id': clientId,
       'assigned_by': userId,
@@ -292,18 +304,7 @@ class ProgramRepository {
       )[0], // date format YYYY-MM-DD
       'duration_weeks': durationWeeks,
       'active': true,
-    }).select('id').single();
-
-    final String newAssignmentId = newAssignmentResponse['id'];
-
-    // 4. Migrate workout logs from old assignment to new one if applicable
-    if (oldAssignmentId != null) {
-      await _supabase
-          .from('workout_logs')
-          .update({'assignment_id': newAssignmentId})
-          .eq('client_id', clientId)
-          .eq('assignment_id', oldAssignmentId);
-    }
+    });
   }
 
   /// Loads a single client's full profile including goals and active assignments.

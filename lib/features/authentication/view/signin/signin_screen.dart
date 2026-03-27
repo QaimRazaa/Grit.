@@ -59,7 +59,8 @@ class _SigninScreenState extends ConsumerState<SigninScreen> {
       }
     });
 
-    final state = ref.watch(signinViewModelProvider);
+    final isLoading = ref.watch(signinViewModelProvider.select((s) => s.isLoading));
+    final isButtonActive = ref.watch(signinViewModelProvider.select((s) => s.isButtonActive));
     final obscurePassword = ref.watch(obscurePasswordProvider('signin'));
 
     return Scaffold(
@@ -115,7 +116,7 @@ class _SigninScreenState extends ConsumerState<SigninScreen> {
                     height: AppSizes.height(GritSizes.size52),
                     onChanged: (v) => ref.read(signinViewModelProvider.notifier).setPassword(v),
                     onSubmitted: (_) {
-                      if (state.isButtonActive) _handleSubmit();
+                      if (isButtonActive) _handleSubmit();
                     },
                     validator: AppValidators.validatePasswordSignin,
                     suffixIcon: Icon(
@@ -135,16 +136,16 @@ class _SigninScreenState extends ConsumerState<SigninScreen> {
                   SizedBox(height: AppSizes.height(GritSizes.gap24)),
                   CustomElevatedButton(
                     text: AppTexts.buttonLogin,
-                    textColor: state.isButtonActive ? AppColors.background : AppColors.dim,
-                    backgroundColor: state.isButtonActive ? AppColors.amber : AppColors.surface2,
-                    onPressed: (state.isButtonActive && !state.isLoading)
+                    textColor: isButtonActive ? AppColors.background : AppColors.dim,
+                    backgroundColor: isButtonActive ? AppColors.amber : AppColors.surface2,
+                    onPressed: (isButtonActive && !isLoading)
                         ? _handleSubmit
                         : null,
                     width: double.infinity,
                     height: GritSizes.size52,
                     borderRadius: GritSizes.radius12,
                     fontSize: AppSizes.font(GritSizes.fontSize15),
-                    child: state.isLoading
+                    child: isLoading
                         ? SizedBox(
                             height: AppSizes.height(20.0),
                             width: AppSizes.width(20.0),

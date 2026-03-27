@@ -40,6 +40,11 @@ class ClientHomeScreen extends ConsumerWidget {
     final exercises = program?.exercises ?? [];
     final completedCount = exercises.where((ex) => state.todaysLoggedExercises.contains(ex.name)).length;
     
+    // When workout is done today, we show the completed day number in header
+    final displayDay = state.isWorkoutDoneToday 
+        ? state.currentDayNumber - 1 
+        : state.currentDayNumber;
+
     HomeWorkoutState workoutState = HomeWorkoutState.notStarted;
     if (state.isRestDay) {
       workoutState = HomeWorkoutState.restDay;
@@ -122,12 +127,12 @@ class ClientHomeScreen extends ConsumerWidget {
                           
                           WorkoutHeader(
                             workoutName: state.todayWorkoutName,
-                            dayNumber: state.currentDayNumber,
+                            dayNumber: displayDay,
                           ),
                           SizedBox(height: AppSizes.height(12)),
 
                           if (state.isWorkoutDoneToday)
-                            _buildLockedDayView(state.currentDayNumber)
+                            _buildLockedDayView(displayDay)
                           else ...[
                             // Muscle Chips & Session Progress
                             MuscleChipsAndProgress(
@@ -224,7 +229,7 @@ class ClientHomeScreen extends ConsumerWidget {
           const Text('Session Complete', style: AppTextStyles.font20Bold),
           SizedBox(height: AppSizes.height(8)),
           Text(
-            'Keep up the momentum! Day ${currentDay + 1} will unlock tomorrow.',
+            'Keep up the momentum! Day ${currentDay + 1} unlocks tomorrow.',
             textAlign: TextAlign.center,
             style: AppTextStyles.font14RegularMuted,
           ),

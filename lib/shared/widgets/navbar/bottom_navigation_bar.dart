@@ -18,13 +18,13 @@ class SharedBottomNavBar extends ConsumerWidget {
       child: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: AppSizes.width(16.0), 
+            horizontal: AppSizes.width(16.0),
             vertical: AppSizes.height(8.0),
           ),
           child: GNav(
             backgroundColor: AppColors.background,
             tabBackgroundColor: AppColors.surface2,
-            activeColor: AppColors.white,
+            activeColor: AppColors.amber,
             color: AppColors.muted,
             padding: EdgeInsets.all(AppSizes.width(16)),
             gap: AppSizes.width(8),
@@ -34,10 +34,7 @@ class SharedBottomNavBar extends ConsumerWidget {
               // Add GoRouter navigation here depending on tabs
             },
             tabs: [
-              const GButton(
-                icon: Icons.home_rounded,
-                text: AppTexts.navHome,
-              ),
+              const GButton(icon: Icons.home_rounded, text: AppTexts.navHome),
               const GButton(
                 icon: Icons.bar_chart_rounded,
                 text: AppTexts.navProgress,
@@ -50,7 +47,9 @@ class SharedBottomNavBar extends ConsumerWidget {
                   children: [
                     Icon(
                       Icons.chat_bubble_rounded,
-                      color: currentIndex == 2 ? AppColors.white : AppColors.muted,
+                      color: currentIndex == 2
+                          ? AppColors.white
+                          : AppColors.muted,
                     ),
                     Positioned(
                       top: -AppSizes.height(2),
